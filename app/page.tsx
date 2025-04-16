@@ -19,6 +19,14 @@ import {
   DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Home() {
   const { username, setUsername } = useUsername();
@@ -89,11 +97,53 @@ export default function Home() {
                   </DialogDescription>
                 </DialogHeader>
                 {dialogType === "create" ? (
-                  // Create playground form content
-                  <div>Create content here</div>
+                  <form className="space-y-4">
+                    <div className="flex w-full justify-between">
+                      <div className="space-y-2 flex-1/2">
+                        <Label>Timer (seconds)</Label>
+                        <ToggleGroup type="single" defaultValue="30">
+                          {[30, 45, 60].map((item) => (
+                            <ToggleGroupItem value={item.toString()} key={item}>
+                              {item}s
+                            </ToggleGroupItem>
+                          ))}
+                        </ToggleGroup>
+                      </div>
+                      <div className="space-y-2 flex-1/2">
+                        <Label>Rounds</Label>
+                        <Select defaultValue="3">
+                          <SelectTrigger className="w-2/3">
+                            <SelectValue placeholder="Select rounds" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[3, 5, 7].map((item) => (
+                              <SelectItem value={item.toString()} key={item}>
+                                {item} rounds
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <Button type="submit" className="w-full">
+                      Create Playground
+                    </Button>
+                  </form>
                 ) : (
-                  // Join playground form content
-                  <div>Join content here</div>
+                  <form className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Playground Code</Label>
+                      <Input
+                        placeholder="code"
+                        maxLength={6}
+                        className="uppercase placeholder:normal-case"
+                      />
+                    </div>
+                    <Button type="submit" className="w-full">
+                      Join Playground
+                    </Button>
+                  </form>
                 )}
               </DialogContent>
             </Dialog>
