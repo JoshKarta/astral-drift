@@ -45,8 +45,10 @@ export default function CreatePlaygroundForm() {
   const createPlayground = useMutation(api.playground.createPlayground);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!username) {
+    if (!username || username === null) {
       toast.error("Username is required");
+      router.push("/");
+      return;
     }
 
     try {
@@ -60,20 +62,24 @@ export default function CreatePlaygroundForm() {
           loading: "Creating playground..",
           success: "Playground created successfully",
           error: "Failed to create playground",
-        }
+        },
       );
-      // await createPlayground({
-      //   hostId: username as string,
-      //   rounds: values.rounds,
-      //   timer: values.timer,
-      // });
 
-      router.push(`/playground/${result.code}`);
+      if (!result || !result.code) {
+        console.error("No playground code returned");
+        return;
+      }
+
+      console.log("Navigation to:", `/playground/${result.code}`);
+
+      // Force the router to navigate
+      setTimeout(() => {
+        router.push(`/playground/${result.code}`);
+      }, 100);
     } catch (error) {
       console.error("Error creating playground:", error);
     }
   };
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

@@ -13,7 +13,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
 
-export default function page() {
+export default function Page() {
   const params = useParams();
   const { username } = useUsername();
   const playgroundData = useQuery(api.playground.playground, {
@@ -24,57 +24,52 @@ export default function page() {
 
   console.log(playgroundData);
 
-  if (!username === null) {
-    return (
-      <main className="">
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-4 gap-4">
-            {/* Leaderboard - Moved to top */}
-            <LeaderboardCard
-              playgroundData={playgroundData as Doc<"playgrounds">}
-            />
-            {/* User Card */}
-            <Card className="col-span-4 rounded-md py-2 md:col-start-1 md:col-end-4">
-              <CardContent className="flex w-full items-center justify-between px-4">
-                <p className="font-semibold">{username}</p>
-                <div className="flex items-center gap-4">
-                  <p>
-                    score <span className="font-bold text-indigo-500">0</span>
-                  </p>
-                  <Popover>
-                    <PopoverTrigger className="group cursor-pointer">
-                      <Settings className="group-hover:spin-in h-5 w-5 text-neutral-400 transition-all" />
-                    </PopoverTrigger>
-                    <PopoverContent>
-                      Place content for the popover here.
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </CardContent>
-            </Card>
+  return (
+    <main className="">
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-4 gap-4">
+          {/* Leaderboard - Moved to top */}
+          <LeaderboardCard
+            playgroundData={playgroundData as Doc<"playgrounds">}
+          />
+          {/* User Card */}
+          <Card className="col-span-4 rounded-md py-2 md:col-start-1 md:col-end-4">
+            <CardContent className="flex w-full items-center justify-between px-4">
+              <p className="font-semibold">{username}</p>
+              <div className="flex items-center gap-4">
+                <p>
+                  score <span className="font-bold text-indigo-500">0</span>
+                </p>
+                <Popover>
+                  <PopoverTrigger className="group cursor-pointer">
+                    <Settings className="group-hover:spin-in h-5 w-5 text-neutral-400 transition-all" />
+                  </PopoverTrigger>
+                  <PopoverContent>
+                    Place content for the popover here.
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Playground Card */}
-            <div className="col-span-4 flex w-full items-center justify-between md:col-span-3">
-              <h3 className="font-medium text-neutral-500">Time left: 30sec</h3>
-              <p className="text-neutral-300">
-                Playground Code:
-                <span>{params.id}</span>
-              </p>
-            </div>
-
-            {/* Fields */}
-            <Card className="col-span-4 rounded-lg md:col-start-1 md:col-end-4">
-              <CardHeader></CardHeader>
-              <CardContent></CardContent>
-            </Card>
+          {/* Playground Card */}
+          <div className="col-span-4 flex w-full items-center justify-between md:col-span-3">
+            <h3 className="font-medium text-neutral-500">Time left: 30sec</h3>
+            <p className="text-neutral-300">
+              Playground Code:
+              <span>{params.id}</span>
+            </p>
           </div>
+
+          {/* Fields */}
+          <Card className="col-span-4 rounded-lg md:col-start-1 md:col-end-4">
+            <CardHeader></CardHeader>
+            <CardContent></CardContent>
+          </Card>
         </div>
-      </main>
-    );
-  } else {
-    const router = useRouter();
-    router.push("/");
-  }
+      </div>
+    </main>
+  );
 }
 
 function LeaderboardCard({

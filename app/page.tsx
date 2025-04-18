@@ -22,7 +22,7 @@ import {
 import CreatePlaygroundForm from "@/components/forms/CreatePlaygroundForm";
 import JoinPlaygroundForm from "@/components/forms/JoinPlaygroundForm";
 
-export default function Home() {
+export default function Page() {
   const { username, setUsername } = useUsername();
   const [input, setInput] = useState("");
   const [dialogType, setDialogType] = useState<"create" | "join" | null>(null);
@@ -35,7 +35,7 @@ export default function Home() {
   };
 
   return (
-    <main className="flex w-full mx-auto h-dvh justify-center items-center">
+    <main className="mx-auto flex h-dvh w-full items-center justify-center">
       {username === null ? (
         <Card>
           <CardContent>
@@ -51,9 +51,9 @@ export default function Home() {
           </CardContent>
         </Card>
       ) : (
-        <Card className="w-[300px] md:w-[500px] gap-4">
+        <Card className="w-[300px] gap-4 md:w-[500px]">
           <CardHeader>
-            <CardTitle className="font-normal text-center">
+            <CardTitle className="text-center font-normal">
               Hi, <span className="font-medium">{username}</span>
             </CardTitle>
             <CardDescription className="mt-1 text-center">
@@ -62,7 +62,7 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <Dialog>
-              <div className="flex gap-2 items-center justify-center">
+              <div className="flex items-center justify-center gap-2">
                 <DialogTrigger asChild>
                   <Button onClick={() => setDialogType("create")}>
                     Create
