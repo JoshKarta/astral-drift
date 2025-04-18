@@ -50,10 +50,10 @@ export default function JoinPlaygroundForm() {
           loading: "Joining playground..",
           success: "Playground joined successfully",
           error: "Failed to join playground",
-        }
+        },
       );
 
-      router.push(`/playground/${result.code}`);
+      router.push(`/playground/${values.code.toUpperCase()}`);
     } catch (error) {
       console.error("Error joining playground:", error);
     }
