@@ -1,5 +1,12 @@
 "use client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useUsername } from "@/hooks/useUsername";
 import { useParams } from "next/navigation";
 import React from "react";
@@ -24,6 +31,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import toast from "react-hot-toast";
+import AnswersForm from "@/components/forms/AnswersForm";
 
 type TPlaygroundParams = {
   id: string | string[];
@@ -76,10 +84,7 @@ export default function Page() {
           />
 
           {/* Fields */}
-          <Card className="col-span-4 rounded-lg md:col-start-1 md:col-end-4">
-            <CardHeader></CardHeader>
-            <CardContent></CardContent>
-          </Card>
+          <GameUI playgroundData={playgroundData as Doc<"playgrounds">} />
         </div>
       </div>
     </main>
@@ -119,21 +124,15 @@ function PlaygroundDetails({
   playgroundData: Doc<"playgrounds">;
 }) {
   const playgroundId = Array.isArray(id) ? id[0] : id;
-  const updateStatus = useMutation(api.playground.gameStatus);
+  const game = useMutation(api.game.startGame);
 
-  const updateGameStatus = async () => {
+  const startGame = async () => {
     try {
-      await toast.promise(
-        updateStatus({
-          code: playgroundData.code,
-          status: playgroundData.status === "waiting" ? "playing" : "finished",
-        }),
-        {
-          loading: "Starting game..",
-          success: "The game has started",
-          error: "Failed to start game",
-        },
-      );
+      await toast.promise(game({ playgroundId: playgroundData._id }), {
+        loading: "Starting game..",
+        success: "The game has started",
+        error: "Failed to start game",
+      });
     } catch (error) {
       console.error("Error starting game:", error);
     }
@@ -160,9 +159,7 @@ function PlaygroundDetails({
           </AlertDialogHeader>
           <AlertDialogFooter className="sm:justify-center">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={updateGameStatus}>
-              Continue
-            </AlertDialogAction>
+            <AlertDialogAction onClick={startGame}>Continue</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -190,5 +187,19 @@ function PlaygroundDetails({
         </Popover>
       </div>
     </div>
+  );
+}
+
+function GameUI({ playgroundData }: { playgroundData: Doc<"playgrounds"> }) {
+  return (
+    <Card className="col-span-4 rounded-lg md:col-start-1 md:col-end-4">
+      <CardHeader className="text-center">
+        <CardTitle>The letter which all names need to start is:</CardTitle>
+        <CardDescription></CardDescription>
+      </CardHeader>
+      <CardContent>
+        <AnswersForm playgroundData={playgroundData} />
+      </CardContent>
+    </Card>
   );
 }
