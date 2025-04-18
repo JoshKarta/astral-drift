@@ -20,6 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import CreatePlaygroundForm from "@/components/forms/CreatePlaygroundForm";
+import JoinPlaygroundForm from "@/components/forms/JoinPlaygroundForm";
 
 export default function Home() {
   const { username, setUsername } = useUsername();
@@ -92,19 +93,7 @@ export default function Home() {
                 {dialogType === "create" ? (
                   <CreatePlaygroundForm />
                 ) : (
-                  <form className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Playground Code</Label>
-                      <Input
-                        placeholder="code"
-                        maxLength={6}
-                        className="uppercase placeholder:normal-case"
-                      />
-                    </div>
-                    <Button type="submit" className="w-full">
-                      Join Playground
-                    </Button>
-                  </form>
+                  <JoinPlaygroundForm />
                 )}
               </DialogContent>
             </Dialog>

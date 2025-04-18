@@ -69,6 +69,6 @@ export const joinPlayground = mutation({
       answers: [],
     });
 
-    return { playgroundId: playground._id };
+    return { playgroundId: playground._id, code };
   },
 });
