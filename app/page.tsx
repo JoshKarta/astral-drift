@@ -19,14 +19,7 @@ import {
   DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import CreatePlaygroundForm from "@/components/forms/CreatePlaygroundForm";
 
 export default function Home() {
   const { username, setUsername } = useUsername();
@@ -42,7 +35,7 @@ export default function Home() {
 
   return (
     <main className="flex w-full mx-auto h-dvh justify-center items-center">
-      {!username ? (
+      {username === null ? (
         <Card>
           <CardContent>
             <Input
@@ -97,39 +90,7 @@ export default function Home() {
                   </DialogDescription>
                 </DialogHeader>
                 {dialogType === "create" ? (
-                  <form className="space-y-4">
-                    <div className="flex w-full justify-between">
-                      <div className="space-y-2 flex-1/2">
-                        <Label>Timer (seconds)</Label>
-                        <ToggleGroup type="single" defaultValue="30">
-                          {[30, 45, 60].map((item) => (
-                            <ToggleGroupItem value={item.toString()} key={item}>
-                              {item}s
-                            </ToggleGroupItem>
-                          ))}
-                        </ToggleGroup>
-                      </div>
-                      <div className="space-y-2 flex-1/2">
-                        <Label>Rounds</Label>
-                        <Select defaultValue="3">
-                          <SelectTrigger className="w-2/3">
-                            <SelectValue placeholder="Select rounds" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {[3, 5, 7].map((item) => (
-                              <SelectItem value={item.toString()} key={item}>
-                                {item} rounds
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <Button type="submit" className="w-full">
-                      Create Playground
-                    </Button>
-                  </form>
+                  <CreatePlaygroundForm />
                 ) : (
                   <form className="space-y-4">
                     <div className="space-y-2">
