@@ -141,7 +141,7 @@ export default function AnswersForm({
             control={form.control}
             name="fields.landen"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="col-span-2">
                 <FormLabel>Countries</FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="Enter a country" />

@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import toast from "react-hot-toast";
 import AnswersForm from "@/components/forms/AnswersForm";
+import { useGameLetter } from "@/hooks/useGameLetter";
 
 type TPlaygroundParams = {
   id: string | string[];
@@ -67,7 +68,7 @@ export default function Page() {
                 </p>
                 <Popover>
                   <PopoverTrigger className="group cursor-pointer">
-                    <Settings className="group-hover:spin-in h-5 w-5 text-neutral-400 transition-all" />
+                    <Settings className="group-hover:spin-in h-5 w-5 text-black transition-all" />
                   </PopoverTrigger>
                   <PopoverContent>
                     Place content for the popover here.
@@ -141,7 +142,7 @@ function PlaygroundDetails({
   return (
     <div className="col-span-4 flex w-full items-center justify-between md:col-span-3">
       <h3 className="text-sm font-medium text-neutral-500 md:text-lg">
-        Time left: {30}sec
+        Time left: {playgroundData?.timer}sec
       </h3>
       {/* Alert to start the game */}
       <AlertDialog>
@@ -191,11 +192,14 @@ function PlaygroundDetails({
 }
 
 function GameUI({ playgroundData }: { playgroundData: Doc<"playgrounds"> }) {
+  const { letter } = useGameLetter();
   return (
     <Card className="col-span-4 rounded-lg md:col-start-1 md:col-end-4">
       <CardHeader className="text-center">
         <CardTitle>The letter which all names need to start is:</CardTitle>
-        <CardDescription></CardDescription>
+        <CardDescription className="text-lg text-indigo-700">
+          {letter}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <AnswersForm playgroundData={playgroundData} />
