@@ -73,6 +73,26 @@ export const joinPlayground = mutation({
   },
 });
 
+export const gameStatus = mutation({
+  args: {
+    status: v.string(),
+    code: v.string(),
+  },
+  handler: async (ctx, { code, status }) => {
+    const playground = await ctx.db
+      .query("playgrounds")
+      .filter((q) => q.eq(q.field("code"), code))
+      .first();
+
+    if (!playground) throw new Error("Playground not found.");
+
+    await ctx.db.patch(playground._id, {
+      status,
+    });
+    return { status: playground.status };
+  },
+});
+
 export const playground = query({
   args: { code: v.string() },
   handler: async (ctx, { code }) => {

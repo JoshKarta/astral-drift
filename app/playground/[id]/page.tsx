@@ -1,17 +1,33 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUsername } from "@/hooks/useUsername";
-import { redirect, useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import React from "react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Settings } from "lucide-react";
-import { useQuery } from "convex/react";
+import { AlignRight, Play, Settings } from "lucide-react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import toast from "react-hot-toast";
+
+type TPlaygroundParams = {
+  id: string | string[];
+};
 
 export default function Page() {
   const params = useParams();
@@ -20,9 +36,7 @@ export default function Page() {
     code: params.id as string,
   });
 
-  console.log(username);
-
-  console.log(playgroundData);
+  const id = params?.id as string;
 
   return (
     <main className="">
@@ -36,6 +50,9 @@ export default function Page() {
           <Card className="col-span-4 rounded-md py-2 md:col-start-1 md:col-end-4">
             <CardContent className="flex w-full items-center justify-between px-4">
               <p className="font-semibold">{username}</p>
+              <p className="text-xs text-neutral-300">
+                {playgroundData?.status}
+              </p>
               <div className="flex items-center gap-4">
                 <p>
                   score <span className="font-bold text-indigo-500">0</span>
@@ -53,13 +70,10 @@ export default function Page() {
           </Card>
 
           {/* Playground Card */}
-          <div className="col-span-4 flex w-full items-center justify-between md:col-span-3">
-            <h3 className="font-medium text-neutral-500">Time left: 30sec</h3>
-            <p className="text-neutral-300">
-              Playground Code:
-              <span>{params.id}</span>
-            </p>
-          </div>
+          <PlaygroundDetails
+            id={id}
+            playgroundData={playgroundData as Doc<"playgrounds">}
+          />
 
           {/* Fields */}
           <Card className="col-span-4 rounded-lg md:col-start-1 md:col-end-4">
@@ -77,7 +91,6 @@ function LeaderboardCard({
 }: {
   playgroundData: Doc<"playgrounds">;
 }) {
-  console.log(playgroundData);
   return (
     <Card className="hidden rounded-md md:col-start-4 md:col-end-5 md:row-span-3 md:row-start-1 md:inline-block">
       <CardHeader>
@@ -95,5 +108,87 @@ function LeaderboardCard({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function PlaygroundDetails({
+  id,
+  playgroundData,
+}: {
+  id: TPlaygroundParams;
+  playgroundData: Doc<"playgrounds">;
+}) {
+  const playgroundId = Array.isArray(id) ? id[0] : id;
+  const updateStatus = useMutation(api.playground.gameStatus);
+
+  const updateGameStatus = async () => {
+    try {
+      await toast.promise(
+        updateStatus({
+          code: playgroundData.code,
+          status: playgroundData.status === "waiting" ? "playing" : "finished",
+        }),
+        {
+          loading: "Starting game..",
+          success: "The game has started",
+          error: "Failed to start game",
+        },
+      );
+    } catch (error) {
+      console.error("Error starting game:", error);
+    }
+  };
+
+  return (
+    <div className="col-span-4 flex w-full items-center justify-between md:col-span-3">
+      <h3 className="text-sm font-medium text-neutral-500 md:text-lg">
+        Time left: {30}sec
+      </h3>
+      {/* Alert to start the game */}
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button size={"icon"} variant={"ghost"}>
+            <Play className="h-5 w-5 text-green-500" />
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center">
+              Do you want to{" "}
+              {playgroundData?.code === "waiting" ? "start" : "end"} the game?
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={updateGameStatus}>
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="aligen-center flex gap-4">
+        <p className="text-sm text-neutral-300 md:text-lg">
+          Playground Code:
+          <span>{playgroundId}</span>
+        </p>
+        {/* Mobile leaderboard */}
+        <Popover>
+          <PopoverTrigger className="group cursor-pointer md:hidden">
+            <AlignRight className="group-hover:spin-in h-5 w-5 text-neutral-400 transition-all" />
+          </PopoverTrigger>
+          <PopoverContent>
+            <h3 className="font-medium">Leaderboard</h3>
+            {playgroundData &&
+              playgroundData.playerIds.map((item) => (
+                <div className="flex items-center justify-between" key={item}>
+                  <span className="text-sm">{item}</span>
+                  <span className="text-indigo-400">p</span>
+                </div>
+              ))}
+          </PopoverContent>
+        </Popover>
+      </div>
+    </div>
   );
 }
