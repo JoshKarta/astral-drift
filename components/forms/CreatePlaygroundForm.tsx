@@ -45,18 +45,32 @@ export default function CreatePlaygroundForm() {
   const createPlayground = useMutation(api.playground.createPlayground);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      const result = await createPlayground({
-        hostId: username as string,
-        rounds: values.rounds,
-        timer: values.timer,
-      });
+    if (!username) {
+      toast.error("Username is required");
+    }
 
-      toast.success("Playground created successfully");
+    try {
+      const result = await toast.promise(
+        createPlayground({
+          hostId: username as string,
+          rounds: values.rounds,
+          timer: values.timer,
+        }),
+        {
+          loading: "Creating playground..",
+          success: "Playground created successfully",
+          error: "Failed to create playground",
+        }
+      );
+      // await createPlayground({
+      //   hostId: username as string,
+      //   rounds: values.rounds,
+      //   timer: values.timer,
+      // });
+
       router.push(`/playground/${result.code}`);
     } catch (error) {
       console.error("Error creating playground:", error);
-      toast.error("Failed to create playground");
     }
   };
 
