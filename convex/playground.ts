@@ -5,7 +5,7 @@ function generateCode(length = 6) {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   return Array.from(
     { length },
-    () => chars[Math.floor(Math.random() * chars.length)]
+    () => chars[Math.floor(Math.random() * chars.length)],
   ).join("");
 }
 
@@ -70,5 +70,15 @@ export const joinPlayground = mutation({
     });
 
     return { playgroundId: playground._id, code };
+  },
+});
+
+export const playground = query({
+  args: { code: v.string() },
+  handler: async (ctx, { code }) => {
+    return await ctx.db
+      .query("playgrounds")
+      .filter((q) => q.eq(q.field("code"), code))
+      .first();
   },
 });
