@@ -24,7 +24,7 @@ export default defineSchema({
       v.object({
         round: v.number(),
         fields: v.record(v.string(), v.string()),
-      })
+      }),
     ), // array of { round: number, fields: Record<string, string> }
-  }),
+  }).index("by_playground", ["playgroundId", "username"]),
 });

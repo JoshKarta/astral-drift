@@ -34,10 +34,6 @@ import toast from "react-hot-toast";
 import AnswersForm from "@/components/forms/AnswersForm";
 import { useGameLetter } from "@/hooks/useGameLetter";
 
-type TPlaygroundParams = {
-  id: string | string[];
-};
-
 export default function Page() {
   const params = useParams();
   const { username } = useUsername();
@@ -121,11 +117,13 @@ function PlaygroundDetails({
   id,
   playgroundData,
 }: {
-  id: TPlaygroundParams;
+  id: string;
   playgroundData: Doc<"playgrounds">;
 }) {
-  const playgroundId = Array.isArray(id) ? id[0] : id;
+  const playgroundId = id;
   const game = useMutation(api.game.startGame);
+  const [timeLeft, setTimeLeft] = React.useState<number | null>(null);
+  const { letter, isPlaying } = useGameLetter();
 
   const startGame = async () => {
     try {
@@ -139,10 +137,28 @@ function PlaygroundDetails({
     }
   };
 
+  // Countdown
+  React.useEffect(() => {
+    if (!playgroundData?.timer || !isPlaying) return;
+
+    setTimeLeft(playgroundData.timer);
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (!prev || prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [playgroundData?.timer, isPlaying]);
+
   return (
     <div className="col-span-4 flex w-full items-center justify-between md:col-span-3">
       <h3 className="text-sm font-medium text-neutral-500 md:text-lg">
-        Time left: {playgroundData?.timer}sec
+        Time left: {timeLeft}sec
       </h3>
       {/* Alert to start the game */}
       <AlertDialog>
@@ -155,7 +171,7 @@ function PlaygroundDetails({
           <AlertDialogHeader>
             <AlertDialogTitle className="text-center">
               Do you want to{" "}
-              {playgroundData?.code === "waiting" ? "start" : "end"} the game?
+              {playgroundData?.status === "waiting" ? "start" : "end"} the game?
             </AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter className="sm:justify-center">

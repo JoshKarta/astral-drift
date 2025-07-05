@@ -29,6 +29,7 @@ const formSchema = z.object({
     landen: z.string(),
   }),
 });
+type FormSchema = z.infer<typeof formSchema>;
 
 export default function AnswersForm({
   playgroundData,
@@ -37,7 +38,7 @@ export default function AnswersForm({
 }) {
   const { username } = useUsername();
   const { letter, isPlaying } = useGameLetter();
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       fields: {
@@ -50,32 +51,71 @@ export default function AnswersForm({
     },
   });
 
+  const [timeLeft, setTimeLeft] = React.useState<number | null>(null);
   const submitAnswers = useMutation(api.game.submitAnswers);
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!username || !playgroundData) return;
+  // Countdown
+  React.useEffect(() => {
+    if (!playgroundData?.timer || !isPlaying) return;
 
-    try {
-      await toast.promise(
-        submitAnswers({
-          username,
-          playgroundId: playgroundData._id,
-          round: playgroundData.currentRound,
-          fields: values.fields,
-        }),
-        {
-          loading: "Submitting answers...",
-          success: "Answers submitted successfully!",
-          error: "Failed to submit answers",
-        },
-      );
+    setTimeLeft(playgroundData.timer);
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (!prev || prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
-      // Reset form after successful submission
-      form.reset();
-    } catch (error) {
-      console.error("Error submitting answers:", error);
-    }
+    return () => clearInterval(interval);
+  }, [playgroundData?.timer, isPlaying]);
+
+  // Auto submit when time ends
+  // React.useEffect(() => {
+  //   if (timeLeft === 0 && isPlaying) {
+  //     const values = form.getValues();
+  //     submitAnswers({
+  //       username: username as string,
+  //       code: playgroundData.code,
+  //       fields: values.fields,
+  //     });
+  //   }
+  // }, [timeLeft, isPlaying]);
+
+  const onSubmit = (values: FormSchema) => {
+    submitAnswers({
+      username: username as string,
+      code: playgroundData.code,
+      fields: values.fields,
+    });
   };
+
+  // const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  //   if (!username || !playgroundData) return;
+
+  //   try {
+  //     await toast.promise(
+  //       submitAnswers({
+  //         username,
+  //         playgroundId: playgroundData._id,
+  //         round: playgroundData.currentRound,
+  //         fields: values.fields,
+  //       }),
+  //       {
+  //         loading: "Submitting answers...",
+  //         success: "Answers submitted successfully!",
+  //         error: "Failed to submit answers",
+  //       },
+  //     );
+
+  //     // Reset form after successful submission
+  //     form.reset();
+  //   } catch (error) {
+  //     console.error("Error submitting answers:", error);
+  //   }
+  // };
 
   if (!isPlaying) {
     return <div>Waiting for game to start...</div>;
