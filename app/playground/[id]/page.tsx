@@ -1,7 +1,6 @@
 "use client";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -15,7 +14,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { AlignRight, Play, Settings, LogOut } from "lucide-react";
+import {
+  AlignRight,
+  Play,
+  Settings,
+  LogOut,
+  ClipboardList,
+} from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
@@ -43,6 +48,9 @@ export default function Page() {
     code: params.id as string,
   });
   const [gameEndModalOpen, setGameEndModalOpen] = React.useState(false);
+  const [previousStatus, setPreviousStatus] = React.useState<string | null>(
+    null,
+  );
 
   const handleLeavePlayground = () => {
     router.push("/");
@@ -61,15 +69,24 @@ export default function Page() {
 
   const id = params?.id as string;
 
-  // Check if game ended or restarted
+  // Check if game ended or restarted - only show modal on transition from playing to finished
   React.useEffect(() => {
-    if (playgroundData?.status === "finished") {
-      setGameEndModalOpen(true);
-    } else if (playgroundData?.status === "playing") {
-      // Close modal when game restarts
-      setGameEndModalOpen(false);
+    if (playgroundData?.status) {
+      if (
+        playgroundData.status === "finished" &&
+        previousStatus === "playing"
+      ) {
+        setGameEndModalOpen(true);
+      } else if (
+        playgroundData.status === "playing" &&
+        previousStatus === "finished"
+      ) {
+        // Close modal when game restarts
+        setGameEndModalOpen(false);
+      }
+      setPreviousStatus(playgroundData.status);
     }
-  }, [playgroundData?.status]);
+  }, [playgroundData?.status, previousStatus]);
 
   return (
     <main className="">
@@ -80,7 +97,7 @@ export default function Page() {
             playgroundData={playgroundData as Doc<"playgrounds">}
           />
           {/* User Card */}
-          <Card className="col-span-4 rounded-md py-2 md:col-start-1 md:col-end-4">
+          <Card className="col-span-4 py-2 md:col-start-1 md:col-end-4">
             <CardContent className="flex w-full items-center justify-between px-4">
               <p className="font-semibold">{username}</p>
               <p className="text-xs text-neutral-300">
@@ -151,7 +168,7 @@ function LeaderboardCard({
   );
 
   return (
-    <Card className="hidden rounded-md md:col-start-4 md:col-end-5 md:row-span-3 md:row-start-1 md:inline-block">
+    <Card className="hidden md:col-start-4 md:col-end-5 md:row-span-3 md:row-start-1 md:inline-block">
       <CardHeader>
         <CardTitle>Leaderboard</CardTitle>
       </CardHeader>
@@ -263,9 +280,15 @@ function PlaygroundDetails({
       </AlertDialog>
 
       <div className="aligen-center flex gap-4">
-        <p className="text-sm text-neutral-300 md:text-lg">
-          Playground Code:
-          <span>{playgroundId}</span>
+        <p className="text-sm text-neutral-400">
+          Playground:
+          <span
+            className="inline-flex cursor-pointer items-center"
+            onClick={() => handleCopyValue(playgroundId)}
+          >
+            {playgroundId}
+            <ClipboardList className="ml-1 inline h-4 w-4" />
+          </span>
         </p>
         {/* Mobile leaderboard */}
         <Popover>
@@ -306,7 +329,7 @@ function PlaygroundDetails({
 function GameUI({ playgroundData }: { playgroundData: Doc<"playgrounds"> }) {
   const { letter } = useGameLetter();
   return (
-    <Card className="col-span-4 rounded-lg md:col-start-1 md:col-end-4">
+    <Card className="-lg col-span-4 md:col-start-1 md:col-end-4">
       <CardHeader className="text-center">
         <CardTitle>The letter which all names need to start is:</CardTitle>
         <CardDescription className="text-lg text-indigo-700">
@@ -318,4 +341,20 @@ function GameUI({ playgroundData }: { playgroundData: Doc<"playgrounds"> }) {
       </CardContent>
     </Card>
   );
+}
+
+// Copies a value to clipboard and shows a toast for success or failure
+function handleCopyValue(value: string) {
+  if (!navigator?.clipboard) {
+    toast.error("Clipboard not supported");
+    return;
+  }
+  navigator.clipboard
+    .writeText(value)
+    .then(() => {
+      toast.success("Copied to clipboard!");
+    })
+    .catch(() => {
+      toast.error("Failed to copy");
+    });
 }

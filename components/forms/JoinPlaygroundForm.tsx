@@ -41,7 +41,7 @@ export default function JoinPlaygroundForm() {
     }
 
     try {
-      const result = await toast.promise(
+      await toast.promise(
         joinPlayground({
           username: username,
           code: values.code.toUpperCase(),
@@ -75,6 +75,7 @@ export default function JoinPlaygroundForm() {
                     placeholder="Enter code"
                     maxLength={8}
                     className="uppercase placeholder:normal-case"
+                    disabled={form.formState.isSubmitting}
                   />
                 </FormControl>
                 <FormMessage />
@@ -85,10 +86,36 @@ export default function JoinPlaygroundForm() {
 
         <Button
           type="submit"
-          className="w-full cursor-pointer"
+          className="flex w-full cursor-pointer items-center justify-center"
           disabled={form.formState.isSubmitting}
         >
-          {form.formState.isSubmitting ? "Joining..." : "Join Playground"}
+          {form.formState.isSubmitting ? (
+            <>
+              <svg
+                className="mr-2 h-4 w-4 animate-spin text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"
+                ></path>
+              </svg>
+              Joining...
+            </>
+          ) : (
+            "Join Playground"
+          )}
         </Button>
       </form>
     </Form>

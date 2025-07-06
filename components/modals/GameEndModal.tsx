@@ -12,7 +12,6 @@ import { Trophy, Home, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Doc } from "@/convex/_generated/dataModel";
 import toast from "react-hot-toast";
 
 interface GameEndModalProps {
@@ -57,7 +56,6 @@ function LeaderboardInModal({ playgroundCode }: { playgroundCode: string }) {
 export default function GameEndModal({
   isOpen,
   onClose,
-  finalRound,
   totalRounds,
   playgroundCode,
 }: GameEndModalProps) {
@@ -93,7 +91,7 @@ export default function GameEndModal({
             Game Completed!
           </DialogTitle>
           <DialogDescription className="text-center text-lg">
-            You've completed all {totalRounds} rounds!
+            You&apos;ve completed all {totalRounds} rounds!
           </DialogDescription>
         </DialogHeader>
 

@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useUsername } from "@/hooks/useUsername";
 import { useState } from "react";
 import {
@@ -57,7 +56,7 @@ export default function Page() {
 
   return (
     <main className="mx-auto flex h-dvh w-full flex-col items-center justify-center">
-      <h2 className="mb-10 text-4xl font-bold">Thinkfast</h2>
+      <h2 className="mb-4 text-4xl font-bold">Thinkfast</h2>
       {username === null ? (
         <Card>
           <CardContent>
