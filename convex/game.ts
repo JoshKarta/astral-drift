@@ -104,3 +104,79 @@ export const submitAnswers = mutation({
     return { success: true, round: playground.currentRound };
   },
 });
+
+export const advanceRound = mutation({
+  args: { code: v.string() },
+  handler: async (ctx, { code }) => {
+    const playground = await ctx.db
+      .query("playgrounds")
+      .filter((q) => q.eq(q.field("code"), code))
+      .first();
+
+    if (!playground) {
+      throw new Error("Playground not found");
+    }
+
+    const nextRound = playground.currentRound + 1;
+
+    // Check if this was the last round
+    if (nextRound > playground.rounds) {
+      // Game is finished
+      await ctx.db.patch(playground._id, {
+        status: "finished",
+      });
+      return { gameEnded: true, finalRound: playground.currentRound };
+    }
+
+    // Generate new letter for next round
+    const newLetter = getRandomLetter();
+
+    // Advance to next round
+    await ctx.db.patch(playground._id, {
+      currentRound: nextRound,
+      currentLetter: newLetter,
+    });
+
+    return {
+      gameEnded: false,
+      newRound: nextRound,
+      newLetter: newLetter,
+      timerDuration: playground.timer,
+    };
+  },
+});
+
+export const hasPlayerSubmitted = query({
+  args: {
+    code: v.string(),
+    username: v.string(),
+  },
+  handler: async (ctx, { code, username }) => {
+    const playground = await ctx.db
+      .query("playgrounds")
+      .filter((q) => q.eq(q.field("code"), code))
+      .first();
+
+    if (!playground) {
+      return false;
+    }
+
+    const player = await ctx.db
+      .query("players")
+      .withIndex("by_playground", (q) =>
+        q.eq("playgroundId", playground._id).eq("username", username),
+      )
+      .unique();
+
+    if (!player) {
+      return false;
+    }
+
+    const existingAnswers = player.answers ?? [];
+    const hasSubmitted = existingAnswers.some(
+      (a) => a.round === playground.currentRound,
+    );
+
+    return hasSubmitted;
+  },
+});

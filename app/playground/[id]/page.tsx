@@ -33,6 +33,7 @@ import {
 import toast from "react-hot-toast";
 import AnswersForm from "@/components/forms/AnswersForm";
 import { useGameLetter } from "@/hooks/useGameLetter";
+import GameEndModal from "@/components/modals/GameEndModal";
 
 export default function Page() {
   const params = useParams();
@@ -40,8 +41,16 @@ export default function Page() {
   const playgroundData = useQuery(api.playground.playground, {
     code: params.id as string,
   });
+  const [gameEndModalOpen, setGameEndModalOpen] = React.useState(false);
 
   const id = params?.id as string;
+
+  // Check if game ended
+  React.useEffect(() => {
+    if (playgroundData?.status === "finished") {
+      setGameEndModalOpen(true);
+    }
+  }, [playgroundData?.status]);
 
   return (
     <main className="">
@@ -84,6 +93,16 @@ export default function Page() {
           <GameUI playgroundData={playgroundData as Doc<"playgrounds">} />
         </div>
       </div>
+
+      {/* Game End Modal */}
+      {playgroundData && (
+        <GameEndModal
+          isOpen={gameEndModalOpen}
+          onClose={() => setGameEndModalOpen(false)}
+          finalRound={playgroundData.currentRound}
+          totalRounds={playgroundData.rounds}
+        />
+      )}
     </main>
   );
 }
@@ -123,7 +142,7 @@ function PlaygroundDetails({
   const playgroundId = id;
   const game = useMutation(api.game.startGame);
   const [timeLeft, setTimeLeft] = React.useState<number | null>(null);
-  const { letter, isPlaying } = useGameLetter();
+  const { isPlaying } = useGameLetter();
 
   const startGame = async () => {
     try {
@@ -137,7 +156,7 @@ function PlaygroundDetails({
     }
   };
 
-  // Countdown
+  // Countdown - reset timer when round changes
   React.useEffect(() => {
     if (!playgroundData?.timer || !isPlaying) return;
 
@@ -153,13 +172,20 @@ function PlaygroundDetails({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [playgroundData?.timer, isPlaying]);
+  }, [playgroundData?.timer, playgroundData?.currentRound, isPlaying]);
 
   return (
     <div className="col-span-4 flex w-full items-center justify-between md:col-span-3">
-      <h3 className="text-sm font-medium text-neutral-500 md:text-lg">
-        Time left: {timeLeft}sec
-      </h3>
+      <div className="flex flex-col gap-1">
+        <h3 className="text-sm font-medium text-neutral-500 md:text-lg">
+          Time left: {timeLeft}sec
+        </h3>
+        {playgroundData && isPlaying && (
+          <p className="text-xs text-neutral-400">
+            Round {playgroundData.currentRound} of {playgroundData.rounds}
+          </p>
+        )}
+      </div>
       {/* Alert to start the game */}
       <AlertDialog>
         <AlertDialogTrigger asChild>

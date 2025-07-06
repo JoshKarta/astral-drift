@@ -17,7 +17,7 @@ import { Doc } from "@/convex/_generated/dataModel";
 import toast from "react-hot-toast";
 import { useUsername } from "@/hooks/useUsername";
 import { useGameLetter } from "@/hooks/useGameLetter";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
 const formSchema = z.object({
@@ -52,7 +52,25 @@ export default function AnswersForm({
   });
 
   const [timeLeft, setTimeLeft] = React.useState<number | null>(null);
+  const [hasSubmitted, setHasSubmitted] = React.useState(false);
   const submitAnswers = useMutation(api.game.submitAnswers);
+  const advanceRound = useMutation(api.game.advanceRound);
+
+  // Check if player has already submitted for current round
+  const playerSubmitted = useQuery(
+    api.game.hasPlayerSubmitted,
+    username && playgroundData
+      ? {
+          code: playgroundData.code,
+          username: username as string,
+        }
+      : "skip",
+  );
+
+  // Reset submitted state when round changes
+  React.useEffect(() => {
+    setHasSubmitted(false);
+  }, [playgroundData?.currentRound]);
 
   // Countdown
   React.useEffect(() => {
@@ -70,15 +88,44 @@ export default function AnswersForm({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [playgroundData?.timer, isPlaying]);
+  }, [playgroundData?.timer, playgroundData?.currentRound, isPlaying]);
 
-  // Auto submit when time ends
+  // Auto submit when time ends and advance round
   React.useEffect(() => {
     if (timeLeft === 0 && isPlaying) {
-      const values = form.getValues();
-      onSubmit(values);
+      const handleTimeExpired = async () => {
+        // Submit current answers
+        const values = form.getValues();
+        try {
+          await submitAnswers({
+            username: username as string,
+            code: playgroundData.code,
+            fields: values.fields,
+          });
+        } catch (error) {
+          // Continue even if submission fails (player might not have answered)
+          console.log("Auto-submit failed:", error);
+        }
+
+        // Advance to next round
+        try {
+          await advanceRound({ code: playgroundData.code });
+        } catch (error) {
+          console.error("Failed to advance round:", error);
+        }
+      };
+
+      handleTimeExpired();
     }
-  }, [timeLeft, isPlaying]);
+  }, [
+    timeLeft,
+    isPlaying,
+    username,
+    playgroundData?.code,
+    submitAnswers,
+    advanceRound,
+    form,
+  ]);
 
   // const onSubmit = (values: FormSchema) => {
   //   submitAnswers({
@@ -92,6 +139,7 @@ export default function AnswersForm({
     if (!username || !playgroundData) return;
 
     try {
+      // Only submit answers - don't advance round
       await toast.promise(
         submitAnswers({
           username: username as string,
@@ -100,13 +148,16 @@ export default function AnswersForm({
         }),
         {
           loading: "Submitting answers...",
-          success: "Answers submitted successfully!",
+          success: "Answers submitted! Waiting for round to end...",
           error: (err) => err?.message || "Failed to submit answers.",
         },
       );
 
       // Reset form after successful submission
       form.reset();
+      setHasSubmitted(true);
+
+      // Note: Round will advance automatically when timer expires
     } catch (error) {
       console.error("Error submitting answers:", error);
     }
@@ -114,6 +165,37 @@ export default function AnswersForm({
 
   if (!isPlaying) {
     return <div>Waiting for game to start...</div>;
+  }
+
+  if (hasSubmitted || playerSubmitted) {
+    return (
+      <div className="py-8 text-center">
+        <div className="mb-4">
+          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+            <svg
+              className="h-8 w-8 text-green-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+        </div>
+        <h3 className="mb-2 text-lg font-semibold text-gray-900">
+          Answers Submitted!
+        </h3>
+        <p className="mb-4 text-gray-600">
+          Waiting for other players to finish or timer to expire...
+        </p>
+        <p className="text-sm text-gray-500">Time remaining: {timeLeft}s</p>
+      </div>
+    );
   }
 
   return (
