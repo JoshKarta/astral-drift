@@ -56,7 +56,8 @@ export default function Page() {
   };
 
   return (
-    <main className="mx-auto flex h-dvh w-full items-center justify-center">
+    <main className="mx-auto flex h-dvh w-full flex-col items-center justify-center">
+      <h2 className="mb-10 text-4xl font-bold">Thinkfast</h2>
       {username === null ? (
         <Card>
           <CardContent>
