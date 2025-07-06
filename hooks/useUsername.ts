@@ -10,7 +10,29 @@ export function useUsername() {
   useEffect(() => {
     // This will only run in the browser
     const storedUsername = localStorage.getItem("username");
-    setUsername(storedUsername);
+    const storedTimestamp = localStorage.getItem("username_timestamp");
+
+    if (storedUsername && storedTimestamp) {
+      const timestamp = parseInt(storedTimestamp, 10);
+      const now = Date.now();
+      const oneHour = 60 * 60 * 1000; // 1 hour in milliseconds
+
+      // Check if username has expired (older than 1 hour)
+      if (now - timestamp > oneHour) {
+        // Username has expired, clear it
+        localStorage.removeItem("username");
+        localStorage.removeItem("username_timestamp");
+        setUsername(null);
+      } else {
+        // Username is still valid
+        setUsername(storedUsername);
+      }
+    } else if (storedUsername) {
+      // Username exists but no timestamp, treat as expired
+      localStorage.removeItem("username");
+      setUsername(null);
+    }
+
     setIsInitialized(true);
   }, []);
 
@@ -20,12 +42,40 @@ export function useUsername() {
     if (isInitialized) {
       if (username) {
         localStorage.setItem("username", username);
+        localStorage.setItem("username_timestamp", Date.now().toString());
       } else if (username === null && localStorage.getItem("username")) {
         // Only remove if there was something there before
         localStorage.removeItem("username");
+        localStorage.removeItem("username_timestamp");
       }
     }
   }, [username, isInitialized]);
+
+  // Set up periodic check for username expiration
+  useEffect(() => {
+    if (!isInitialized || !username) return;
+
+    const checkExpiration = () => {
+      const storedTimestamp = localStorage.getItem("username_timestamp");
+      if (storedTimestamp) {
+        const timestamp = parseInt(storedTimestamp, 10);
+        const now = Date.now();
+        const oneHour = 60 * 60 * 1000; // 1 hour in milliseconds
+
+        if (now - timestamp > oneHour) {
+          // Username has expired, clear it
+          localStorage.removeItem("username");
+          localStorage.removeItem("username_timestamp");
+          setUsername(null);
+        }
+      }
+    };
+
+    // Check every 5 minutes
+    const interval = setInterval(checkExpiration, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [isInitialized, username]);
 
   return { username, setUsername };
 }

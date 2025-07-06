@@ -8,14 +8,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useUsername } from "@/hooks/useUsername";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { AlignRight, Play, Settings } from "lucide-react";
+import { AlignRight, Play, Settings, LogOut } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
@@ -37,11 +37,16 @@ import GameEndModal from "@/components/modals/GameEndModal";
 
 export default function Page() {
   const params = useParams();
+  const router = useRouter();
   const { username } = useUsername();
   const playgroundData = useQuery(api.playground.playground, {
     code: params.id as string,
   });
   const [gameEndModalOpen, setGameEndModalOpen] = React.useState(false);
+
+  const handleLeavePlayground = () => {
+    router.push("/");
+  };
 
   // Get current player's score
   const playerScore = useQuery(
@@ -89,8 +94,18 @@ export default function Page() {
                   <PopoverTrigger className="group cursor-pointer">
                     <Settings className="group-hover:spin-in h-5 w-5 text-black transition-all" />
                   </PopoverTrigger>
-                  <PopoverContent>
-                    Place content for the popover here.
+                  <PopoverContent className="w-48">
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleLeavePlayground}
+                        className="justify-start gap-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Leave Playground
+                      </Button>
+                    </div>
                   </PopoverContent>
                 </Popover>
               </div>
