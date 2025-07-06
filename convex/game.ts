@@ -365,3 +365,48 @@ export const getPlaygroundLeaderboard = query({
     return sortedPlayers;
   },
 });
+
+export const resetGameAndRestart = mutation({
+  args: {
+    code: v.string(),
+  },
+  handler: async (ctx, { code }) => {
+    const playground = await ctx.db
+      .query("playgrounds")
+      .filter((q) => q.eq(q.field("code"), code))
+      .first();
+
+    if (!playground) {
+      throw new Error("Playground not found");
+    }
+
+    // Reset all player scores and clear their answers
+    const players = await ctx.db
+      .query("players")
+      .filter((q) => q.eq(q.field("playgroundId"), playground._id))
+      .collect();
+
+    for (const player of players) {
+      await ctx.db.patch(player._id, {
+        score: 0,
+        answers: [],
+      });
+    }
+
+    // Generate new letter for the first round
+    const newLetter = getRandomLetter();
+
+    // Reset playground to playing state with round 1
+    await ctx.db.patch(playground._id, {
+      status: "playing",
+      currentRound: 1,
+      currentLetter: newLetter,
+    });
+
+    return {
+      success: true,
+      newLetter: newLetter,
+      timerDuration: playground.timer,
+    };
+  },
+});

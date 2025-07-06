@@ -61,10 +61,13 @@ export default function Page() {
 
   const id = params?.id as string;
 
-  // Check if game ended
+  // Check if game ended or restarted
   React.useEffect(() => {
     if (playgroundData?.status === "finished") {
       setGameEndModalOpen(true);
+    } else if (playgroundData?.status === "playing") {
+      // Close modal when game restarts
+      setGameEndModalOpen(false);
     }
   }, [playgroundData?.status]);
 
@@ -130,6 +133,7 @@ export default function Page() {
           onClose={() => setGameEndModalOpen(false)}
           finalRound={playgroundData.currentRound}
           totalRounds={playgroundData.rounds}
+          playgroundCode={playgroundData.code}
         />
       )}
     </main>

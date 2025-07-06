@@ -102,6 +102,7 @@ export default function AnswersForm({
             code: playgroundData.code,
             fields: values.fields,
           });
+          form.reset();
         } catch (error) {
           // Continue even if submission fails (player might not have answered)
           console.log("Auto-submit failed:", error);
@@ -164,7 +165,11 @@ export default function AnswersForm({
   };
 
   if (!isPlaying) {
-    return <div>Waiting for game to start...</div>;
+    return (
+      <p className="text-center text-neutral-400">
+        Waiting for game to start...
+      </p>
+    );
   }
 
   if (hasSubmitted || playerSubmitted) {
