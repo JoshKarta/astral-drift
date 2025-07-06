@@ -117,6 +117,14 @@ export const advanceRound = mutation({
       throw new Error("Playground not found");
     }
 
+    // Calculate scores for the current round before advancing
+    await calculateScoresInternal(
+      ctx,
+      playground._id,
+      playground.currentRound,
+      playground.currentLetter,
+    );
+
     const nextRound = playground.currentRound + 1;
 
     // Check if this was the last round
@@ -178,5 +186,182 @@ export const hasPlayerSubmitted = query({
     );
 
     return hasSubmitted;
+  },
+});
+
+// Internal function for calculating scores
+async function calculateScoresInternal(
+  ctx: any,
+  playgroundId: string,
+  round: number,
+  letter: string,
+) {
+  // Get all players in this playground
+  const players = await ctx.db
+    .query("players")
+    .filter((q: any) => q.eq(q.field("playgroundId"), playgroundId))
+    .collect();
+
+  // Get all answers for this round
+  const roundAnswers: Array<{
+    playerId: string;
+    username: string;
+    answers: Record<string, string>;
+  }> = [];
+
+  for (const player of players) {
+    const playerAnswer = player.answers.find((a: any) => a.round === round);
+    if (playerAnswer) {
+      roundAnswers.push({
+        playerId: player._id,
+        username: player.username,
+        answers: playerAnswer.fields,
+      });
+    }
+  }
+
+  // Calculate scores for each field
+  const fieldNames = ["jongens", "meisjes", "dieren", "vruchten", "landen"];
+  const scoreUpdates: Record<string, number> = {};
+
+  // Initialize score updates
+  for (const player of players) {
+    scoreUpdates[player._id] = 0;
+  }
+
+  // Process each field
+  for (const fieldName of fieldNames) {
+    // Collect all answers for this field
+    const fieldAnswers: Array<{
+      playerId: string;
+      answer: string;
+    }> = [];
+
+    for (const playerAnswer of roundAnswers) {
+      const answer = playerAnswer.answers[fieldName]?.trim().toLowerCase();
+      if (answer) {
+        fieldAnswers.push({
+          playerId: playerAnswer.playerId,
+          answer: answer,
+        });
+      }
+    }
+
+    // Count occurrences of each answer
+    const answerCounts: Record<string, string[]> = {};
+    for (const fieldAnswer of fieldAnswers) {
+      if (!answerCounts[fieldAnswer.answer]) {
+        answerCounts[fieldAnswer.answer] = [];
+      }
+      answerCounts[fieldAnswer.answer].push(fieldAnswer.playerId);
+    }
+
+    // Calculate points for each answer
+    for (const [answer, playerIds] of Object.entries(answerCounts)) {
+      // Check if answer starts with the correct letter
+      const startsWithLetter =
+        answer.charAt(0).toLowerCase() === letter.toLowerCase();
+
+      if (startsWithLetter) {
+        const basePoints = 10;
+        const duplicateCount = playerIds.length;
+        const pointsPerPlayer = duplicateCount > 1 ? 5 : basePoints;
+
+        // Award points to all players with this answer
+        for (const playerId of playerIds) {
+          scoreUpdates[playerId] += pointsPerPlayer;
+        }
+      }
+      // If doesn't start with letter, players get 0 points (no change needed)
+    }
+  }
+
+  // Update player scores in database
+  for (const [playerId, additionalScore] of Object.entries(scoreUpdates)) {
+    const player = players.find((p: any) => p._id === playerId);
+    if (player && additionalScore > 0) {
+      await ctx.db.patch(playerId as any, {
+        score: player.score + additionalScore,
+      });
+    }
+  }
+
+  return { scoreUpdates, totalPlayers: players.length };
+}
+
+export const calculateRoundScores = mutation({
+  args: {
+    playgroundId: v.id("playgrounds"),
+    round: v.number(),
+    letter: v.string(),
+  },
+  handler: async (ctx, { playgroundId, round, letter }) => {
+    return await calculateScoresInternal(ctx, playgroundId, round, letter);
+  },
+});
+
+export const getPlayerScore = query({
+  args: {
+    code: v.string(),
+    username: v.string(),
+  },
+  handler: async (ctx, { code, username }) => {
+    const playground = await ctx.db
+      .query("playgrounds")
+      .filter((q) => q.eq(q.field("code"), code))
+      .first();
+
+    if (!playground) {
+      return null;
+    }
+
+    const player = await ctx.db
+      .query("players")
+      .withIndex("by_playground", (q) =>
+        q.eq("playgroundId", playground._id).eq("username", username),
+      )
+      .unique();
+
+    if (!player) {
+      return null;
+    }
+
+    return {
+      username: player.username,
+      score: player.score,
+      currentRound: playground.currentRound,
+      totalRounds: playground.rounds,
+    };
+  },
+});
+
+export const getPlaygroundLeaderboard = query({
+  args: {
+    code: v.string(),
+  },
+  handler: async (ctx, { code }) => {
+    const playground = await ctx.db
+      .query("playgrounds")
+      .filter((q) => q.eq(q.field("code"), code))
+      .first();
+
+    if (!playground) {
+      return [];
+    }
+
+    const players = await ctx.db
+      .query("players")
+      .filter((q) => q.eq(q.field("playgroundId"), playground._id))
+      .collect();
+
+    // Sort players by score (highest first)
+    const sortedPlayers = players
+      .map((player) => ({
+        username: player.username,
+        score: player.score,
+      }))
+      .sort((a, b) => b.score - a.score);
+
+    return sortedPlayers;
   },
 });

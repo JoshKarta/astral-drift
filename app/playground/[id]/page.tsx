@@ -43,6 +43,17 @@ export default function Page() {
   });
   const [gameEndModalOpen, setGameEndModalOpen] = React.useState(false);
 
+  // Get current player's score
+  const playerScore = useQuery(
+    api.game.getPlayerScore,
+    username && params.id
+      ? {
+          code: params.id as string,
+          username: username as string,
+        }
+      : "skip",
+  );
+
   const id = params?.id as string;
 
   // Check if game ended
@@ -69,7 +80,10 @@ export default function Page() {
               </p>
               <div className="flex items-center gap-4">
                 <p>
-                  score <span className="font-bold text-indigo-500">0</span>
+                  score{" "}
+                  <span className="font-bold text-indigo-500">
+                    {playerScore?.score || 0}
+                  </span>
                 </p>
                 <Popover>
                   <PopoverTrigger className="group cursor-pointer">
@@ -112,6 +126,11 @@ function LeaderboardCard({
 }: {
   playgroundData: Doc<"playgrounds">;
 }) {
+  const leaderboard = useQuery(
+    api.game.getPlaygroundLeaderboard,
+    playgroundData ? { code: playgroundData.code } : "skip",
+  );
+
   return (
     <Card className="hidden rounded-md md:col-start-4 md:col-end-5 md:row-span-3 md:row-start-1 md:inline-block">
       <CardHeader>
@@ -119,13 +138,24 @@ function LeaderboardCard({
       </CardHeader>
       <CardContent className="mt-1">
         <div className="flex flex-col gap-1">
-          {playgroundData &&
-            playgroundData.playerIds.map((item) => (
-              <div className="flex items-center justify-between" key={item}>
-                <span className="text-sm">{item}</span>
-                <span className="text-indigo-400">p</span>
+          {leaderboard && leaderboard.length > 0 ? (
+            leaderboard.map((player, index) => (
+              <div
+                className="flex items-center justify-between"
+                key={player.username}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">#{index + 1}</span>
+                  <span className="text-sm">{player.username}</span>
+                </div>
+                <span className="font-semibold text-indigo-400">
+                  {player.score}
+                </span>
               </div>
-            ))}
+            ))
+          ) : (
+            <div className="text-sm text-gray-500">No players yet</div>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -143,6 +173,12 @@ function PlaygroundDetails({
   const game = useMutation(api.game.startGame);
   const [timeLeft, setTimeLeft] = React.useState<number | null>(null);
   const { isPlaying } = useGameLetter();
+
+  // Get leaderboard for mobile popover
+  const leaderboard = useQuery(
+    api.game.getPlaygroundLeaderboard,
+    playgroundData ? { code: playgroundData.code } : "skip",
+  );
 
   const startGame = async () => {
     try {
@@ -218,14 +254,29 @@ function PlaygroundDetails({
             <AlignRight className="group-hover:spin-in h-5 w-5 text-neutral-400 transition-all" />
           </PopoverTrigger>
           <PopoverContent>
-            <h3 className="font-medium">Leaderboard</h3>
-            {playgroundData &&
-              playgroundData.playerIds.map((item) => (
-                <div className="flex items-center justify-between" key={item}>
-                  <span className="text-sm">{item}</span>
-                  <span className="text-indigo-400">p</span>
-                </div>
-              ))}
+            <h3 className="mb-2 font-medium">Leaderboard</h3>
+            <div className="flex flex-col gap-1">
+              {leaderboard && leaderboard.length > 0 ? (
+                leaderboard.map((player, index) => (
+                  <div
+                    className="flex items-center justify-between"
+                    key={player.username}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">
+                        #{index + 1}
+                      </span>
+                      <span className="text-sm">{player.username}</span>
+                    </div>
+                    <span className="font-semibold text-indigo-400">
+                      {player.score}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-gray-500">No players yet</div>
+              )}
+            </div>
           </PopoverContent>
         </Popover>
       </div>
