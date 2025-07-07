@@ -366,6 +366,62 @@ export const getPlaygroundLeaderboard = query({
   },
 });
 
+export const getPlaygroundResults = query({
+  args: {
+    code: v.string(),
+  },
+  handler: async (ctx, { code }) => {
+    const playground = await ctx.db
+      .query("playgrounds")
+      .filter((q) => q.eq(q.field("code"), code))
+      .first();
+
+    if (!playground) {
+      return null;
+    }
+
+    const players = await ctx.db
+      .query("players")
+      .filter((q) => q.eq(q.field("playgroundId"), playground._id))
+      .collect();
+
+    // Organize results by round
+    const resultsByRound: Record<
+      number,
+      Array<{
+        username: string;
+        answers: Record<string, string>;
+        score: number;
+      }>
+    > = {};
+
+    for (let round = 1; round <= playground.rounds; round++) {
+      resultsByRound[round] = [];
+
+      for (const player of players) {
+        const roundAnswer = player.answers.find((a) => a.round === round);
+        if (roundAnswer) {
+          resultsByRound[round].push({
+            username: player.username,
+            answers: roundAnswer.fields,
+            score: player.score,
+          });
+        }
+      }
+    }
+
+    return {
+      playground: {
+        code: playground.code,
+        rounds: playground.rounds,
+        status: playground.status,
+      },
+      resultsByRound,
+      fieldNames: ["jongens", "meisjes", "dieren", "vruchten", "landen"],
+    };
+  },
+});
+
 export const resetGameAndRestart = mutation({
   args: {
     code: v.string(),

@@ -102,3 +102,40 @@ export const playground = query({
       .first();
   },
 });
+
+export const leavePlayground = mutation({
+  args: {
+    username: v.string(),
+    code: v.string(),
+  },
+  handler: async (ctx, { username, code }) => {
+    const playground = await ctx.db
+      .query("playgrounds")
+      .filter((q) => q.eq(q.field("code"), code))
+      .first();
+
+    if (!playground) throw new Error("Playground not found.");
+
+    // Remove player from playground's playerIds array
+    const updatedPlayerIds = playground.playerIds.filter(
+      (id) => id !== username,
+    );
+    await ctx.db.patch(playground._id, {
+      playerIds: updatedPlayerIds,
+    });
+
+    // Remove player record from players table
+    const player = await ctx.db
+      .query("players")
+      .withIndex("by_playground", (q) =>
+        q.eq("playgroundId", playground._id).eq("username", username),
+      )
+      .unique();
+
+    if (player) {
+      await ctx.db.delete(player._id);
+    }
+
+    return { success: true };
+  },
+});

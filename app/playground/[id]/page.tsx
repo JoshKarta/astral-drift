@@ -52,8 +52,44 @@ export default function Page() {
     null,
   );
 
-  const handleLeavePlayground = () => {
-    router.push("/");
+  // Check for showModal query parameter
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (
+        urlParams.get("showModal") === "true" &&
+        playgroundData?.status === "finished"
+      ) {
+        setGameEndModalOpen(true);
+        // Clean up the URL
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    }
+  }, [playgroundData?.status]);
+
+  const leavePlayground = useMutation(api.playground.leavePlayground);
+
+  const handleLeavePlayground = async () => {
+    if (!username || !playgroundData) return;
+
+    try {
+      await toast.promise(
+        leavePlayground({
+          username: username as string,
+          code: playgroundData.code,
+        }),
+        {
+          loading: "Leaving playground...",
+          success: "Left playground successfully",
+          error: "Failed to leave playground",
+        },
+      );
+      router.push("/");
+    } catch (error) {
+      console.error("Error leaving playground:", error);
+      // Still redirect even if the mutation fails
+      router.push("/");
+    }
   };
 
   // Get current player's score
@@ -69,11 +105,12 @@ export default function Page() {
 
   const id = params?.id as string;
 
-  // Check if game ended or restarted - only show modal on transition from playing to finished
+  // Check if game ended or restarted - only show modal when last round is finished
   React.useEffect(() => {
     if (playgroundData?.status) {
       if (
         playgroundData.status === "finished" &&
+        playgroundData.currentRound === playgroundData.rounds &&
         previousStatus === "playing"
       ) {
         setGameEndModalOpen(true);
@@ -86,7 +123,12 @@ export default function Page() {
       }
       setPreviousStatus(playgroundData.status);
     }
-  }, [playgroundData?.status, previousStatus]);
+  }, [
+    playgroundData?.status,
+    playgroundData?.currentRound,
+    playgroundData?.rounds,
+    previousStatus,
+  ]);
 
   return (
     <main className="">

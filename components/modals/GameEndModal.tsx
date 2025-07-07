@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Trophy, Home, RotateCcw } from "lucide-react";
+import { Trophy, Home, RotateCcw, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -67,6 +67,11 @@ export default function GameEndModal({
     onClose();
   };
 
+  const handleViewResults = () => {
+    router.push(`/results/${playgroundCode}`);
+    onClose();
+  };
+
   const handlePlayAgain = async () => {
     try {
       await toast.promise(resetAndRestart({ code: playgroundCode }), {
@@ -103,6 +108,14 @@ export default function GameEndModal({
             <Button onClick={handlePlayAgain} className="w-full">
               <RotateCcw className="mr-2 h-4 w-4" />
               Play Again
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleViewResults}
+              className="w-full"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              View Results
             </Button>
             <Button variant="outline" onClick={handleGoHome} className="w-full">
               <Home className="mr-2 h-4 w-4" />
