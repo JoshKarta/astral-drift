@@ -110,7 +110,7 @@ export default function Page() {
                     variant="ghost"
                     size="sm"
                     onClick={handleChangeUsername}
-                    className="h-6 w-6 p-0 text-gray-500 hover:text-gray-700"
+                    className="hover:text-primary h-6 w-6 cursor-pointer p-0 text-gray-500 hover:bg-transparent"
                   >
                     <Edit2 className="h-2 w-2" />
                   </Button>

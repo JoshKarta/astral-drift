@@ -1,10 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export function useUsername() {
   // Use null as initial state instead of undefined
   const [username, setUsername] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const router = useRouter();
 
   // Run only once on client-side to initialize from localStorage
   useEffect(() => {
@@ -76,6 +78,13 @@ export function useUsername() {
 
     return () => clearInterval(interval);
   }, [isInitialized, username]);
+
+  // Redirect to homepage if username does not exist or is empty
+  useEffect(() => {
+    if (isInitialized && (username === null || username === "")) {
+      router.replace("/");
+    }
+  }, [username, isInitialized, router]);
 
   return { username, setUsername };
 }
