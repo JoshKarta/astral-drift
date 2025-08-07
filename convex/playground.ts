@@ -134,8 +134,15 @@ export const leavePlayground = mutation({
 
     if (player) {
       await ctx.db.delete(player._id);
+      console.log(`Player ${username} removed from playground ${code}`);
+    } else {
+      console.log(`Player ${username} not found in playground ${code}`);
     }
 
-    return { success: true };
+    return {
+      success: true,
+      playerRemoved: !!player,
+      remainingPlayers: updatedPlayerIds.length,
+    };
   },
 });

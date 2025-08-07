@@ -73,7 +73,10 @@ export default function Page() {
     if (!username || !playgroundData) return;
 
     try {
-      await toast.promise(
+      console.log(
+        `Attempting to leave playground: ${playgroundData.code} as ${username}`,
+      );
+      const result = await toast.promise(
         leavePlayground({
           username: username as string,
           code: playgroundData.code,
@@ -84,6 +87,7 @@ export default function Page() {
           error: "Failed to leave playground",
         },
       );
+      console.log("Leave playground result:", result);
       router.push("/");
     } catch (error) {
       console.error("Error leaving playground:", error);
