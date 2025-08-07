@@ -385,7 +385,7 @@ export const getPlaygroundResults = query({
       .filter((q) => q.eq(q.field("playgroundId"), playground._id))
       .collect();
 
-    // Organize results by round
+    // Organize results by round - only include rounds with actual data
     const resultsByRound: Record<
       number,
       Array<{
@@ -395,17 +395,50 @@ export const getPlaygroundResults = query({
       }>
     > = {};
 
-    for (let round = 1; round <= playground.rounds; round++) {
-      resultsByRound[round] = [];
+    // First, find all rounds that have actual player answers
+    const roundsWithData = new Set<number>();
+    for (const player of players) {
+      for (const answer of player.answers) {
+        roundsWithData.add(answer.round);
+      }
+    }
 
-      for (const player of players) {
-        const roundAnswer = player.answers.find((a) => a.round === round);
-        if (roundAnswer) {
-          resultsByRound[round].push({
-            username: player.username,
-            answers: roundAnswer.fields,
-            score: player.score,
-          });
+    // Only process rounds that have data and are within the playground's round limit
+    for (const round of Array.from(roundsWithData).sort((a, b) => a - b)) {
+      if (round <= playground.rounds) {
+        resultsByRound[round] = [];
+
+        // Include ALL players for each round, even if they didn't submit
+        for (const player of players) {
+          const roundAnswer = player.answers.find((a) => a.round === round);
+
+          if (roundAnswer) {
+            // Player submitted answers for this round
+            resultsByRound[round].push({
+              username: player.username,
+              answers: roundAnswer.fields,
+              score: player.score,
+            });
+          } else {
+            // Player didn't submit answers for this round - show empty answers
+            const emptyAnswers: Record<string, string> = {};
+            const fieldNames = [
+              "jongens",
+              "meisjes",
+              "dieren",
+              "vruchten",
+              "landen",
+            ];
+            for (const field of fieldNames) {
+              emptyAnswers[field] = "";
+            }
+
+            resultsByRound[round].push({
+              username: player.username,
+              answers: emptyAnswers,
+              score: player.score,
+            });
+          }
         }
       }
     }
@@ -415,8 +448,12 @@ export const getPlaygroundResults = query({
         code: playground.code,
         rounds: playground.rounds,
         status: playground.status,
+        currentRound: playground.currentRound,
       },
       resultsByRound,
+      roundsPlayed: Array.from(Object.keys(resultsByRound))
+        .map(Number)
+        .sort((a, b) => a - b),
       fieldNames: ["jongens", "meisjes", "dieren", "vruchten", "landen"],
     };
   },

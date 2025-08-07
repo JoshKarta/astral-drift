@@ -292,7 +292,7 @@ function PlaygroundDetails({
     <div className="col-span-4 flex w-full items-center justify-between md:col-span-3">
       <div className="flex flex-col gap-1">
         <h3 className="text-sm font-medium text-neutral-500 md:text-lg">
-          Time left: {timeLeft}sec
+          Time left: <span className="text-red-300">{timeLeft}sec</span>
         </h3>
         {playgroundData && isPlaying && (
           <p className="text-xs text-neutral-400">

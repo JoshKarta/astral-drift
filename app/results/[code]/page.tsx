@@ -40,7 +40,7 @@ export default function ResultsPage() {
 
   const fieldLabels = {
     jongens: "Boys Names",
-    meisjes: "Girls Names", 
+    meisjes: "Girls Names",
     dieren: "Animals",
     vruchten: "Fruits",
     landen: "Countries",
@@ -55,6 +55,13 @@ export default function ResultsPage() {
             <h1 className="text-3xl font-bold text-gray-900">Game Results</h1>
             <p className="text-gray-600">
               Playground: <span className="font-medium">{code}</span>
+            </p>
+            <p className="text-sm text-gray-500">
+              {results.roundsPlayed.length} of {results.playground.rounds}{" "}
+              rounds completed
+              {results.playground.status === "finished"
+                ? " (Game Finished)"
+                : " (Game In Progress)"}
             </p>
           </div>
           <Button onClick={handleBackToPlayground} variant="outline">
@@ -85,10 +92,10 @@ export default function ResultsPage() {
                         index === 0
                           ? "bg-yellow-500 text-white"
                           : index === 1
-                          ? "bg-gray-400 text-white"
-                          : index === 2
-                          ? "bg-amber-600 text-white"
-                          : ""
+                            ? "bg-gray-400 text-white"
+                            : index === 2
+                              ? "bg-amber-600 text-white"
+                              : ""
                       }
                     >
                       #{index + 1}
@@ -106,46 +113,66 @@ export default function ResultsPage() {
 
         {/* Round by Round Results */}
         <div className="space-y-6">
-          {Object.entries(results.resultsByRound).map(([round, players]) => (
-            <Card key={round}>
-              <CardHeader>
-                <CardTitle>Round {round}</CardTitle>
-                <CardDescription>
-                  All player answers for round {round}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="p-3 text-left font-medium">Player</th>
-                        {results.fieldNames.map((field) => (
-                          <th key={field} className="p-3 text-left font-medium">
-                            {fieldLabels[field as keyof typeof fieldLabels]}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {players.map((player) => (
-                        <tr key={player.username} className="border-b">
-                          <td className="p-3 font-medium">{player.username}</td>
-                          {results.fieldNames.map((field) => (
-                            <td key={field} className="p-3">
-                              <span className="rounded bg-gray-100 px-2 py-1 text-sm">
-                                {player.answers[field] || "-"}
-                              </span>
-                            </td>
+          {results.roundsPlayed.length > 0 ? (
+            results.roundsPlayed.map((round) => {
+              const players = results.resultsByRound[round] || [];
+              return (
+                <Card key={round}>
+                  <CardHeader>
+                    <CardTitle>Round {round}</CardTitle>
+                    <CardDescription>
+                      All player answers for round {round}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="p-3 text-left font-medium">
+                              Player
+                            </th>
+                            {results.fieldNames.map((field) => (
+                              <th
+                                key={field}
+                                className="p-3 text-left font-medium"
+                              >
+                                {fieldLabels[field as keyof typeof fieldLabels]}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {players.map((player) => (
+                            <tr key={player.username} className="border-b">
+                              <td className="p-3 font-medium">
+                                {player.username}
+                              </td>
+                              {results.fieldNames.map((field) => (
+                                <td key={field} className="p-3">
+                                  <span className="rounded bg-gray-100 px-2 py-1 text-sm">
+                                    {player.answers[field] || "-"}
+                                  </span>
+                                </td>
+                              ))}
+                            </tr>
                           ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
+          ) : (
+            <Card>
+              <CardContent className="py-8 text-center">
+                <p className="text-gray-500">
+                  No rounds have been completed yet.
+                </p>
               </CardContent>
             </Card>
-          ))}
+          )}
         </div>
       </div>
     </main>
