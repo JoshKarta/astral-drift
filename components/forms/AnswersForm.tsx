@@ -54,6 +54,7 @@ export default function AnswersForm({
 
   const [timeLeft, setTimeLeft] = React.useState<number | null>(null);
   const [hasSubmitted, setHasSubmitted] = React.useState(false);
+  const [isTimerActive, setIsTimerActive] = React.useState(false);
   const submitAnswers = useMutation(api.game.submitAnswers);
   const advanceRound = useMutation(api.game.advanceRound);
 
@@ -71,30 +72,51 @@ export default function AnswersForm({
   // Reset submitted state when round changes
   React.useEffect(() => {
     setHasSubmitted(false);
+    setIsTimerActive(false); // Reset timer active state on round change
   }, [playgroundData?.currentRound]);
 
   // Countdown
   React.useEffect(() => {
-    if (!playgroundData?.timer || !isPlaying) return;
+    if (!playgroundData?.timer || !isPlaying) {
+      setIsTimerActive(false);
+      return;
+    }
 
-    setTimeLeft(playgroundData.timer);
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (!prev || prev <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    // Add a small delay to prevent race conditions during restart
+    const startTimer = setTimeout(() => {
+      setTimeLeft(playgroundData.timer);
+      setIsTimerActive(true);
 
-    return () => clearInterval(interval);
+      const interval = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (!prev || prev <= 1) {
+            clearInterval(interval);
+            setIsTimerActive(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => {
+        clearInterval(interval);
+        setIsTimerActive(false);
+      };
+    }, 100); // Small delay to prevent race conditions
+
+    return () => {
+      clearTimeout(startTimer);
+      setIsTimerActive(false);
+    };
   }, [playgroundData?.timer, playgroundData?.currentRound, isPlaying]);
 
   // Auto submit when time ends and advance round
   React.useEffect(() => {
-    if (timeLeft === 0 && isPlaying) {
+    // Only auto-submit if timer was actually active and reached 0 naturally
+    if (timeLeft === 0 && isPlaying && isTimerActive) {
       const handleTimeExpired = async () => {
+        console.log("Timer expired naturally, auto-submitting...");
+
         // Submit current answers
         const values = form.getValues();
         try {
@@ -122,6 +144,7 @@ export default function AnswersForm({
   }, [
     timeLeft,
     isPlaying,
+    isTimerActive,
     username,
     playgroundData?.code,
     submitAnswers,

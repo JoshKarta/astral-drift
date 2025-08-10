@@ -489,17 +489,23 @@ export const resetGameAndRestart = mutation({
     // Generate new letter for the first round
     const newLetter = getRandomLetter();
 
-    // Reset playground to playing state with round 1
+    // First set status to waiting briefly to ensure clean state transition
     await ctx.db.patch(playground._id, {
-      status: "playing",
+      status: "waiting",
       currentRound: 1,
       currentLetter: newLetter,
+    });
+
+    // Then immediately set to playing to trigger proper state updates
+    await ctx.db.patch(playground._id, {
+      status: "playing",
     });
 
     return {
       success: true,
       newLetter: newLetter,
       timerDuration: playground.timer,
+      currentRound: 1,
     };
   },
 });

@@ -41,7 +41,7 @@ function LeaderboardInModal({ playgroundCode }: { playgroundCode: string }) {
             <span className="ml-2 flex-1 text-left text-sm">
               {player.username}
             </span>
-            <span className="font-semibold text-indigo-400">
+            <span className="font-semibold text-neutral-500/70">
               {player.score}
             </span>
           </div>
@@ -109,18 +109,24 @@ export default function GameEndModal({
               <RotateCcw className="mr-2 h-4 w-4" />
               Play Again
             </Button>
-            <Button
-              variant="outline"
-              onClick={handleViewResults}
-              className="w-full"
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              View Results
-            </Button>
-            <Button variant="outline" onClick={handleGoHome} className="w-full">
-              <Home className="mr-2 h-4 w-4" />
-              Go to Home
-            </Button>
+            <div className="flex flex-col gap-2 lg:flex-row">
+              <Button
+                variant="outline"
+                onClick={handleViewResults}
+                className="flex-1"
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                View Results
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleGoHome}
+                className="flex-1"
+              >
+                <Home className="mr-2 h-4 w-4" />
+                Go to Home
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

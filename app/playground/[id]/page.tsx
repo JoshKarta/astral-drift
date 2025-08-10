@@ -279,18 +279,24 @@ function PlaygroundDetails({
   React.useEffect(() => {
     if (!playgroundData?.timer || !isPlaying) return;
 
-    setTimeLeft(playgroundData.timer);
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (!prev || prev <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    // Add a small delay to prevent race conditions during restart
+    const startTimer = setTimeout(() => {
+      setTimeLeft(playgroundData.timer);
 
-    return () => clearInterval(interval);
+      const interval = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (!prev || prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }, 100); // Small delay to prevent race conditions
+
+    return () => clearTimeout(startTimer);
   }, [playgroundData?.timer, playgroundData?.currentRound, isPlaying]);
 
   return (
