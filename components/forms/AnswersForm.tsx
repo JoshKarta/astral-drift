@@ -19,6 +19,7 @@ import { useUsername } from "@/hooks/useUsername";
 import { useGameLetter } from "@/hooks/useGameLetter";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import AnimatedTimer from "@/components/ui/animated-timer";
 
 const formSchema = z.object({
   fields: z.object({
@@ -198,7 +199,9 @@ export default function AnswersForm({
         <p className="mb-4 text-gray-600">
           Waiting for other players to finish or timer to expire...
         </p>
-        <p className="text-sm text-gray-500">Time remaining: {timeLeft}s</p>
+        <p className="text-sm text-gray-500">
+          Time remaining: <AnimatedTimer seconds={timeLeft} />
+        </p>
       </div>
     );
   }

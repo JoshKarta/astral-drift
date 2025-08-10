@@ -39,6 +39,7 @@ import toast from "react-hot-toast";
 import AnswersForm from "@/components/forms/AnswersForm";
 import { useGameLetter } from "@/hooks/useGameLetter";
 import GameEndModal from "@/components/modals/GameEndModal";
+import AnimatedTimer from "@/components/ui/animated-timer";
 
 export default function Page() {
   const params = useParams();
@@ -152,7 +153,7 @@ export default function Page() {
               <div className="flex items-center gap-4">
                 <p>
                   score{" "}
-                  <span className="font-bold text-indigo-500">
+                  <span className="font-bold text-yellow-500">
                     {playerScore?.score || 0}
                   </span>
                 </p>
@@ -230,7 +231,7 @@ function LeaderboardCard({
                   <span className="text-xs text-gray-500">#{index + 1}</span>
                   <span className="text-sm">{player.username}</span>
                 </div>
-                <span className="font-semibold text-indigo-400">
+                <span className="font-semibold text-yellow-500">
                   {player.score}
                 </span>
               </div>
@@ -296,7 +297,7 @@ function PlaygroundDetails({
     <div className="col-span-4 flex w-full items-center justify-between md:col-span-3">
       <div className="flex flex-col gap-1">
         <h3 className="text-sm font-medium text-neutral-500 md:text-lg">
-          Time left: <span className="text-red-300">{timeLeft}sec</span>
+          Time: <AnimatedTimer seconds={timeLeft} />
         </h3>
         {playgroundData && isPlaying && (
           <p className="text-xs text-neutral-400">
@@ -307,7 +308,11 @@ function PlaygroundDetails({
       {/* Alert to start the game */}
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button size={"icon"} variant={"ghost"}>
+          <Button
+            size={"icon"}
+            variant={"ghost"}
+            className="hover:bg-primary/10"
+          >
             <Play className="h-5 w-5 text-green-500" />
           </Button>
         </AlertDialogTrigger>
@@ -315,7 +320,12 @@ function PlaygroundDetails({
           <AlertDialogHeader>
             <AlertDialogTitle className="text-center">
               Do you want to{" "}
-              {playgroundData?.status === "waiting" ? "start" : "end"} the game?
+              {playgroundData?.status === "waiting"
+                ? "start"
+                : playgroundData?.status === "finished"
+                  ? "restart"
+                  : "end"}{" "}
+              the game?
             </AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter className="sm:justify-center">
@@ -356,7 +366,7 @@ function PlaygroundDetails({
                       </span>
                       <span className="text-sm">{player.username}</span>
                     </div>
-                    <span className="font-semibold text-indigo-400">
+                    <span className="font-semibold text-yellow-500">
                       {player.score}
                     </span>
                   </div>
