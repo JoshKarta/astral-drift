@@ -22,8 +22,6 @@ import CreatePlaygroundForm from "@/components/forms/CreatePlaygroundForm";
 import JoinPlaygroundForm from "@/components/forms/JoinPlaygroundForm";
 import { Edit2 } from "lucide-react";
 import { Highlighter } from "@/components/magicui/highlighter";
-import { DotPattern } from "@/components/magicui/dot-pattern";
-import { cn } from "@/lib/utils";
 
 export default function Page() {
   const { username, setUsername } = useUsername();
@@ -59,11 +57,6 @@ export default function Page() {
 
   return (
     <main className="mx-auto flex h-dvh w-full flex-col items-center justify-center">
-      <DotPattern
-        className={cn(
-          "z-10 [mask-image:radial-gradient(600px_circle_at_center,white,transparent)]",
-        )}
-      />
       <div className="z-30">
         <h2 className="mb-4 text-center text-4xl font-bold">
           <Highlighter action="highlight">Thinkfast</Highlighter>

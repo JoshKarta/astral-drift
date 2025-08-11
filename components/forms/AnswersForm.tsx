@@ -91,7 +91,7 @@ export default function AnswersForm({
         setTimeLeft((prev) => {
           if (!prev || prev <= 1) {
             clearInterval(interval);
-            setIsTimerActive(false);
+            // Don't set isTimerActive to false immediately - let auto-submit handle it
             return 0;
           }
           return prev - 1;
@@ -116,6 +116,9 @@ export default function AnswersForm({
     if (timeLeft === 0 && isPlaying && isTimerActive) {
       const handleTimeExpired = async () => {
         console.log("Timer expired naturally, auto-submitting...");
+
+        // Set timer inactive immediately to prevent multiple submissions
+        setIsTimerActive(false);
 
         // Submit current answers
         const values = form.getValues();
