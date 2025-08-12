@@ -37,9 +37,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import toast from "react-hot-toast";
 import AnswersForm from "@/components/forms/AnswersForm";
+import AnswersFormForDummy from "@/components/forms/AnswerFormForDummy";
 import { useGameLetter } from "@/hooks/useGameLetter";
 import GameEndModal from "@/components/modals/GameEndModal";
 import AnimatedTimer from "@/components/ui/animated-timer";
+import { useSearchParams } from "next/navigation";
 
 export default function Page() {
   const params = useParams();
@@ -161,7 +163,7 @@ export default function Page() {
                   <PopoverTrigger className="group cursor-pointer">
                     <Settings className="group-hover:spin-in h-5 w-5 text-black transition-all" />
                   </PopoverTrigger>
-                  <PopoverContent className="w-48">
+                  <PopoverContent className="w-48 rounded-xl">
                     <div className="flex flex-col gap-2">
                       <Button
                         variant="ghost"
@@ -390,6 +392,12 @@ function PlaygroundDetails({
 
 function GameUI({ playgroundData }: { playgroundData: Doc<"playgrounds"> }) {
   const { letter } = useGameLetter();
+  const searchParams = useSearchParams();
+
+  // Check if it's dummy mode from URL parameter or database field
+  const isDummyMode =
+    searchParams.get("mode") === "dummy" || playgroundData?.forDummies;
+
   return (
     <Card className="-lg col-span-4 md:col-start-1 md:col-end-4">
       <CardHeader className="text-center">
@@ -399,7 +407,11 @@ function GameUI({ playgroundData }: { playgroundData: Doc<"playgrounds"> }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <AnswersForm playgroundData={playgroundData} />
+        {isDummyMode ? (
+          <AnswersFormForDummy playgroundData={playgroundData} />
+        ) : (
+          <AnswersForm playgroundData={playgroundData} />
+        )}
       </CardContent>
     </Card>
   );

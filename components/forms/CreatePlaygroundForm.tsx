@@ -25,10 +25,12 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const formSchema = z.object({
   rounds: z.number(),
   timer: z.number(),
+  forDummies: z.boolean(),
 });
 
 export default function CreatePlaygroundForm() {
@@ -39,6 +41,7 @@ export default function CreatePlaygroundForm() {
     defaultValues: {
       rounds: 3,
       timer: 30,
+      forDummies: false,
     },
   });
 
@@ -57,6 +60,7 @@ export default function CreatePlaygroundForm() {
           hostId: username as string,
           rounds: values.rounds,
           timer: values.timer,
+          forDummies: values.forDummies,
         }),
         {
           loading: "Creating playground..",
@@ -70,11 +74,16 @@ export default function CreatePlaygroundForm() {
         return;
       }
 
-      console.log("Navigation to:", `/playground/${result.code}`);
+      // Add URL parameter if it's for dummies
+      const url = values.forDummies
+        ? `/playground/${result.code}?mode=dummy`
+        : `/playground/${result.code}`;
+
+      console.log("Navigation to:", url);
 
       // Force the router to navigate
       setTimeout(() => {
-        router.push(`/playground/${result.code}`);
+        router.push(url);
       }, 100);
     } catch (error) {
       console.error("Error creating playground:", error);
@@ -137,6 +146,30 @@ export default function CreatePlaygroundForm() {
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="forDummies"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-y-0 space-x-3">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel className="text-sm font-normal">
+                  For Dummies Mode
+                </FormLabel>
+                <p className="text-muted-foreground text-xs">
+                  Enable enhanced features like country search for easier
+                  gameplay
+                </p>
+              </div>
+            </FormItem>
+          )}
+        />
 
         <Button
           type="submit"

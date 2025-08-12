@@ -15,6 +15,7 @@ export default defineSchema({
     timer: v.number(), // in seconds
     currentRound: v.number(),
     currentLetter: v.string(),
+    forDummies: v.optional(v.boolean()), // whether this playground is for dummies
   }),
   players: defineTable({
     username: v.string(),

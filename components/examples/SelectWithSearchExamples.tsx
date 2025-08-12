@@ -14,8 +14,9 @@ const frameworkOptions: SelectOption[] = [
 // Example 2: Transform function for API data
 const transformCountries = (data: any[]): SelectOption[] => {
   return data
+    .filter((country) => country.name && country.name.common) // Filter out invalid entries
     .map((country) => ({
-      value: country.cca2, // Use country code as value
+      value: country.name.common, // Use common name as value
       label: country.name.common, // Use common name as label
     }))
     .sort((a, b) => a.label.localeCompare(b.label));
@@ -35,10 +36,12 @@ export default function SelectWithSearchExamples() {
   return (
     <div className="space-y-8 p-6">
       <h2 className="text-2xl font-bold">SelectWithSearch Examples</h2>
-      
+
       {/* Example 1: Static options */}
       <div>
-        <h3 className="text-lg font-semibold mb-4">1. Static Options (Frameworks)</h3>
+        <h3 className="mb-4 text-lg font-semibold">
+          1. Static Options (Frameworks)
+        </h3>
         <SelectWithSearch
           options={frameworkOptions}
           placeholder="Select a framework..."
@@ -50,7 +53,9 @@ export default function SelectWithSearchExamples() {
 
       {/* Example 2: Using custom hook */}
       <div>
-        <h3 className="text-lg font-semibold mb-4">2. Using Custom Hook (Countries)</h3>
+        <h3 className="mb-4 text-lg font-semibold">
+          2. Using Custom Hook (Countries)
+        </h3>
         <SelectWithSearch
           options={countries}
           placeholder="Select a country..."
@@ -62,20 +67,24 @@ export default function SelectWithSearchExamples() {
 
       {/* Example 3: Direct API fetch with transform */}
       <div>
-        <h3 className="text-lg font-semibold mb-4">3. Direct API Fetch (Countries with codes)</h3>
+        <h3 className="mb-4 text-lg font-semibold">
+          3. Direct API Fetch (Countries from REST API)
+        </h3>
         <SelectWithSearch
-          fetchUrl="https://restcountries.com/v3.1/all"
+          fetchUrl="https://restcountries.com/v3.1/all?fields=name"
           transformData={transformCountries}
           placeholder="Select a country..."
           searchPlaceholder="Search countries..."
           emptyMessage="No countries found."
-          label="Country (with codes)"
+          label="Country (direct API)"
         />
       </div>
 
       {/* Example 4: Another API example */}
       <div>
-        <h3 className="text-lg font-semibold mb-4">4. Different API (JSONPlaceholder Users)</h3>
+        <h3 className="mb-4 text-lg font-semibold">
+          4. Different API (JSONPlaceholder Users)
+        </h3>
         <SelectWithSearch
           fetchUrl="https://jsonplaceholder.typicode.com/users"
           transformData={transformUsers}

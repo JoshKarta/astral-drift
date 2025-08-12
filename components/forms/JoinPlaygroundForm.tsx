@@ -15,7 +15,7 @@ import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { useUsername } from "@/hooks/useUsername";
 
 const formSchema = z.object({
@@ -53,6 +53,7 @@ export default function JoinPlaygroundForm() {
         },
       );
 
+      // Navigate to the playground - the page will detect dummy mode from the database
       router.push(`/playground/${values.code.toUpperCase()}`);
     } catch (error) {
       console.error("Error joining playground:", error);

@@ -14,6 +14,7 @@ export const createPlayground = mutation({
     hostId: v.string(),
     rounds: v.number(),
     timer: v.number(), // in seconds
+    forDummies: v.optional(v.boolean()), // whether this playground is for dummies
   },
   handler: async (ctx, args) => {
     const code = generateCode();
@@ -27,6 +28,7 @@ export const createPlayground = mutation({
       timer: args.timer,
       currentRound: 0,
       currentLetter: "",
+      forDummies: args.forDummies || false,
     });
 
     await ctx.db.insert("players", {

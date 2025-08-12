@@ -69,8 +69,9 @@ function CountrySelector() {
 // Transform function for API data
 const transformCountries = (data: any[]): SelectOption[] => {
   return data
+    .filter((country) => country.name && country.name.common) // Filter out invalid entries
     .map((country) => ({
-      value: country.cca2,
+      value: country.name.common,
       label: country.name.common,
     }))
     .sort((a, b) => a.label.localeCompare(b.label));
@@ -83,7 +84,7 @@ function CountrySelectorWithAPI() {
     <SelectWithSearch
       value={selectedCountry}
       onValueChange={setSelectedCountry}
-      fetchUrl="https://restcountries.com/v3.1/all"
+      fetchUrl="https://restcountries.com/v3.1/all?fields=name"
       transformData={transformCountries}
       placeholder="Select a country..."
       label="Country"
@@ -94,20 +95,20 @@ function CountrySelectorWithAPI() {
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `value` | `string` | `""` | Current selected value |
-| `onValueChange` | `(value: string) => void` | - | Callback when selection changes |
-| `placeholder` | `string` | `"Select option..."` | Placeholder text when no option is selected |
-| `searchPlaceholder` | `string` | `"Search..."` | Placeholder text for search input |
-| `emptyMessage` | `string` | `"No options found."` | Message when no options match search |
-| `label` | `string` | - | Optional label for the select |
-| `className` | `string` | - | Additional CSS classes |
-| `disabled` | `boolean` | `false` | Whether the select is disabled |
-| `options` | `SelectOption[]` | - | Static options array |
-| `fetchUrl` | `string` | - | URL to fetch options from |
-| `transformData` | `(data: any) => SelectOption[]` | - | Function to transform API response |
-| `id` | `string` | - | Custom ID for the select element |
+| Prop                | Type                            | Default               | Description                                 |
+| ------------------- | ------------------------------- | --------------------- | ------------------------------------------- |
+| `value`             | `string`                        | `""`                  | Current selected value                      |
+| `onValueChange`     | `(value: string) => void`       | -                     | Callback when selection changes             |
+| `placeholder`       | `string`                        | `"Select option..."`  | Placeholder text when no option is selected |
+| `searchPlaceholder` | `string`                        | `"Search..."`         | Placeholder text for search input           |
+| `emptyMessage`      | `string`                        | `"No options found."` | Message when no options match search        |
+| `label`             | `string`                        | -                     | Optional label for the select               |
+| `className`         | `string`                        | -                     | Additional CSS classes                      |
+| `disabled`          | `boolean`                       | `false`               | Whether the select is disabled              |
+| `options`           | `SelectOption[]`                | -                     | Static options array                        |
+| `fetchUrl`          | `string`                        | -                     | URL to fetch options from                   |
+| `transformData`     | `(data: any) => SelectOption[]` | -                     | Function to transform API response          |
+| `id`                | `string`                        | -                     | Custom ID for the select element            |
 
 ## Types
 
@@ -122,7 +123,12 @@ interface SelectOption {
 
 ```tsx
 import { useForm } from "react-hook-form";
-import { FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+} from "@/components/ui/form";
 
 function FormExample() {
   const form = useForm();
@@ -166,10 +172,7 @@ function MyComponent() {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <SelectWithSearch
-      options={countries}
-      placeholder="Select a country..."
-    />
+    <SelectWithSearch options={countries} placeholder="Select a country..." />
   );
 }
 ```
