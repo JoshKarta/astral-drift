@@ -22,7 +22,7 @@ import { api } from "@/convex/_generated/api";
 import AnimatedTimer from "@/components/ui/animated-timer";
 import SelectWithSearch from "@/components/SelectWithSearch";
 import { useCountries } from "@/hooks/useCountries";
-import { useFruits } from "@/hooks/useFruits";
+// import { useFruits } from "@/hooks/useFruits";
 
 const formSchema = z.object({
   fields: z.object({
@@ -43,7 +43,7 @@ export default function AnswersFormForDummy({
   const { username } = useUsername();
   const { isPlaying } = useGameLetter();
   const { countries } = useCountries();
-  const { fruits } = useFruits();
+  // const { fruits } = useFruits();
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {

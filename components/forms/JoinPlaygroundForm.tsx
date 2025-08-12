@@ -15,7 +15,7 @@ import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { useUsername } from "@/hooks/useUsername";
 
 const formSchema = z.object({

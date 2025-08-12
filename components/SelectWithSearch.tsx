@@ -170,7 +170,7 @@ export default function SelectWithSearch({
                         className="cursor-pointer"
                       >
                         <span className="text-blue-600">
-                          {customInputMessage}: "{searchValue.trim()}"
+                          {customInputMessage}: &quot;{searchValue.trim()}&quot;
                         </span>
                       </CommandItem>
                     ) : (
