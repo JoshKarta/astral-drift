@@ -177,6 +177,23 @@ function MyComponent() {
 }
 ```
 
+### useFruits
+
+A custom hook for fetching fruits from the Fruityvice API:
+
+```tsx
+import { useFruits } from "@/hooks/useFruits";
+
+function MyComponent() {
+  const { fruits, loading, error } = useFruits();
+
+  if (loading) return <div>Loading fruits...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+  return <SelectWithSearch options={fruits} placeholder="Select a fruit..." />;
+}
+```
+
 ## Styling
 
 The component uses Tailwind CSS classes and can be customized using the `className` prop. It integrates seamlessly with shadcn/ui components.

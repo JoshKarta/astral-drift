@@ -2,6 +2,7 @@
 
 import SelectWithSearch, { SelectOption } from "@/components/SelectWithSearch";
 import { useCountries } from "@/hooks/useCountries";
+import { useFruits } from "@/hooks/useFruits";
 
 // Example 1: Static options
 const frameworkOptions: SelectOption[] = [
@@ -22,7 +23,18 @@ const transformCountries = (data: any[]): SelectOption[] => {
     .sort((a, b) => a.label.localeCompare(b.label));
 };
 
-// Example 3: Transform function for different API
+// Example 3: Transform function for fruits API
+const transformFruits = (data: any[]): SelectOption[] => {
+  return data
+    .filter((fruit) => fruit.name) // Filter out invalid entries
+    .map((fruit) => ({
+      value: fruit.name,
+      label: fruit.name,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+};
+
+// Example 4: Transform function for different API
 const transformUsers = (data: any[]): SelectOption[] => {
   return data.map((user) => ({
     value: user.id.toString(),
@@ -32,6 +44,7 @@ const transformUsers = (data: any[]): SelectOption[] => {
 
 export default function SelectWithSearchExamples() {
   const { countries } = useCountries();
+  const { fruits } = useFruits();
 
   return (
     <div className="space-y-8 p-6">
@@ -65,10 +78,24 @@ export default function SelectWithSearchExamples() {
         />
       </div>
 
-      {/* Example 3: Direct API fetch with transform */}
+      {/* Example 3: Using custom hook for fruits */}
       <div>
         <h3 className="mb-4 text-lg font-semibold">
-          3. Direct API Fetch (Countries from REST API)
+          3. Using Custom Hook (Fruits)
+        </h3>
+        <SelectWithSearch
+          options={fruits}
+          placeholder="Select a fruit..."
+          searchPlaceholder="Search fruits..."
+          emptyMessage="No fruits found."
+          label="Fruit"
+        />
+      </div>
+
+      {/* Example 4: Direct API fetch with transform */}
+      <div>
+        <h3 className="mb-4 text-lg font-semibold">
+          4. Direct API Fetch (Countries from REST API)
         </h3>
         <SelectWithSearch
           fetchUrl="https://restcountries.com/v3.1/all?fields=name"
@@ -80,10 +107,25 @@ export default function SelectWithSearchExamples() {
         />
       </div>
 
-      {/* Example 4: Another API example */}
+      {/* Example 5: Direct API fetch for fruits */}
       <div>
         <h3 className="mb-4 text-lg font-semibold">
-          4. Different API (JSONPlaceholder Users)
+          5. Direct API Fetch (Fruits from Fruityvice API)
+        </h3>
+        <SelectWithSearch
+          fetchUrl="https://www.fruityvice.com/api/fruit/all"
+          transformData={transformFruits}
+          placeholder="Select a fruit..."
+          searchPlaceholder="Search fruits..."
+          emptyMessage="No fruits found."
+          label="Fruit (direct API)"
+        />
+      </div>
+
+      {/* Example 6: Another API example */}
+      <div>
+        <h3 className="mb-4 text-lg font-semibold">
+          6. Different API (JSONPlaceholder Users)
         </h3>
         <SelectWithSearch
           fetchUrl="https://jsonplaceholder.typicode.com/users"
