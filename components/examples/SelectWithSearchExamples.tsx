@@ -78,10 +78,10 @@ export default function SelectWithSearchExamples() {
         />
       </div>
 
-      {/* Example 3: Using custom hook for fruits */}
+      {/* Example 3: Using custom hook for fruits with custom input */}
       <div>
         <h3 className="mb-4 text-lg font-semibold">
-          3. Using Custom Hook (Fruits)
+          3. Using Custom Hook (Fruits with Custom Input)
         </h3>
         <SelectWithSearch
           options={fruits}
@@ -89,6 +89,8 @@ export default function SelectWithSearchExamples() {
           searchPlaceholder="Search fruits..."
           emptyMessage="No fruits found."
           label="Fruit"
+          allowCustomInput={true}
+          customInputMessage="Add custom fruit"
         />
       </div>
 

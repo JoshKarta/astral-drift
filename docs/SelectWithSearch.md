@@ -95,20 +95,22 @@ function CountrySelectorWithAPI() {
 
 ## Props
 
-| Prop                | Type                            | Default               | Description                                 |
-| ------------------- | ------------------------------- | --------------------- | ------------------------------------------- |
-| `value`             | `string`                        | `""`                  | Current selected value                      |
-| `onValueChange`     | `(value: string) => void`       | -                     | Callback when selection changes             |
-| `placeholder`       | `string`                        | `"Select option..."`  | Placeholder text when no option is selected |
-| `searchPlaceholder` | `string`                        | `"Search..."`         | Placeholder text for search input           |
-| `emptyMessage`      | `string`                        | `"No options found."` | Message when no options match search        |
-| `label`             | `string`                        | -                     | Optional label for the select               |
-| `className`         | `string`                        | -                     | Additional CSS classes                      |
-| `disabled`          | `boolean`                       | `false`               | Whether the select is disabled              |
-| `options`           | `SelectOption[]`                | -                     | Static options array                        |
-| `fetchUrl`          | `string`                        | -                     | URL to fetch options from                   |
-| `transformData`     | `(data: any) => SelectOption[]` | -                     | Function to transform API response          |
-| `id`                | `string`                        | -                     | Custom ID for the select element            |
+| Prop                 | Type                            | Default               | Description                                 |
+| -------------------- | ------------------------------- | --------------------- | ------------------------------------------- |
+| `value`              | `string`                        | `""`                  | Current selected value                      |
+| `onValueChange`      | `(value: string) => void`       | -                     | Callback when selection changes             |
+| `placeholder`        | `string`                        | `"Select option..."`  | Placeholder text when no option is selected |
+| `searchPlaceholder`  | `string`                        | `"Search..."`         | Placeholder text for search input           |
+| `emptyMessage`       | `string`                        | `"No options found."` | Message when no options match search        |
+| `label`              | `string`                        | -                     | Optional label for the select               |
+| `className`          | `string`                        | -                     | Additional CSS classes                      |
+| `disabled`           | `boolean`                       | `false`               | Whether the select is disabled              |
+| `options`            | `SelectOption[]`                | -                     | Static options array                        |
+| `fetchUrl`           | `string`                        | -                     | URL to fetch options from                   |
+| `transformData`      | `(data: any) => SelectOption[]` | -                     | Function to transform API response          |
+| `id`                 | `string`                        | -                     | Custom ID for the select element            |
+| `allowCustomInput`   | `boolean`                       | `false`               | Allow users to add custom options by typing |
+| `customInputMessage` | `string`                        | `"Add custom option"` | Message shown for custom input option       |
 
 ## Types
 
@@ -118,6 +120,36 @@ interface SelectOption {
   label: string;
 }
 ```
+
+### Custom Input
+
+Allow users to add custom options when they can't find what they're looking for:
+
+```tsx
+function CustomInputExample() {
+  const [selectedFruit, setSelectedFruit] = useState("");
+
+  return (
+    <SelectWithSearch
+      value={selectedFruit}
+      onValueChange={setSelectedFruit}
+      options={fruits}
+      placeholder="Select a fruit..."
+      searchPlaceholder="Search fruits..."
+      emptyMessage="No fruits found."
+      allowCustomInput={true}
+      customInputMessage="Add custom fruit"
+      label="Fruit"
+    />
+  );
+}
+```
+
+When `allowCustomInput` is enabled:
+
+- Users can type in the search box
+- If no matching options are found, they'll see an option to add their custom input
+- Clicking the custom option will select the typed text as the value
 
 ## Integration with React Hook Form
 

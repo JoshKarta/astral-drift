@@ -38,6 +38,8 @@ export interface SelectWithSearchProps {
   fetchUrl?: string;
   transformData?: (data: any) => SelectOption[];
   id?: string;
+  allowCustomInput?: boolean;
+  customInputMessage?: string;
 }
 
 export default function SelectWithSearch({
@@ -53,6 +55,8 @@ export default function SelectWithSearch({
   fetchUrl,
   transformData,
   id: providedId,
+  allowCustomInput = false,
+  customInputMessage = "Add custom option",
 }: SelectWithSearchProps) {
   const generatedId = useId();
   const id = providedId || generatedId;
@@ -60,6 +64,7 @@ export default function SelectWithSearch({
   const [options, setOptions] = useState<SelectOption[]>(staticOptions || []);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchValue, setSearchValue] = useState<string>("");
 
   // Fetch data from API if fetchUrl is provided
   useEffect(() => {
@@ -138,7 +143,10 @@ export default function SelectWithSearch({
           align="start"
         >
           <Command>
-            <CommandInput placeholder={searchPlaceholder} />
+            <CommandInput
+              placeholder={searchPlaceholder}
+              onValueChange={setSearchValue}
+            />
             <CommandList>
               {loading ? (
                 <div className="flex items-center justify-center py-6">
@@ -151,7 +159,24 @@ export default function SelectWithSearch({
                 </div>
               ) : (
                 <>
-                  <CommandEmpty>{emptyMessage}</CommandEmpty>
+                  <CommandEmpty>
+                    {allowCustomInput && searchValue.trim() ? (
+                      <CommandItem
+                        onSelect={() => {
+                          onValueChange?.(searchValue.trim());
+                          setOpen(false);
+                          setSearchValue("");
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <span className="text-blue-600">
+                          {customInputMessage}: "{searchValue.trim()}"
+                        </span>
+                      </CommandItem>
+                    ) : (
+                      emptyMessage
+                    )}
+                  </CommandEmpty>
                   <CommandGroup>
                     {options.map((option) => (
                       <CommandItem

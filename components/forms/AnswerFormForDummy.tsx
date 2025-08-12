@@ -248,7 +248,11 @@ export default function AnswersFormForDummy({
               <FormItem>
                 <FormLabel>Boys</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Enter a boy's name" />
+                  <Input
+                    {...field}
+                    placeholder="Enter a boy's name"
+                    autoComplete="off"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -261,7 +265,11 @@ export default function AnswersFormForDummy({
               <FormItem>
                 <FormLabel>Girls</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Enter a girl's name" />
+                  <Input
+                    {...field}
+                    placeholder="Enter a girl's name"
+                    autoComplete="off"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -274,7 +282,11 @@ export default function AnswersFormForDummy({
               <FormItem>
                 <FormLabel>Animals</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Enter an animal" />
+                  <Input
+                    {...field}
+                    placeholder="Enter an animal"
+                    autoComplete="off"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -287,14 +299,10 @@ export default function AnswersFormForDummy({
               <FormItem>
                 <FormLabel>Fruits</FormLabel>
                 <FormControl>
-                  <SelectWithSearch
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    placeholder="Select a fruit..."
-                    searchPlaceholder="Search fruits..."
-                    emptyMessage="No fruits found."
-                    options={fruits}
-                    disabled={field.disabled}
+                  <Input
+                    {...field}
+                    placeholder="Enter a fruit"
+                    autoComplete="off"
                   />
                 </FormControl>
                 <FormMessage />

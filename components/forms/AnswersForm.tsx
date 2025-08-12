@@ -243,7 +243,11 @@ export default function AnswersForm({
               <FormItem>
                 <FormLabel>Boys</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Enter a boy's name" />
+                  <Input
+                    {...field}
+                    placeholder="Enter a boy's name"
+                    autoComplete="off"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -256,7 +260,11 @@ export default function AnswersForm({
               <FormItem>
                 <FormLabel>Girls</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Enter a girl's name" />
+                  <Input
+                    {...field}
+                    placeholder="Enter a girl's name"
+                    autoComplete="off"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -269,7 +277,11 @@ export default function AnswersForm({
               <FormItem>
                 <FormLabel>Animals</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Enter an animal" />
+                  <Input
+                    {...field}
+                    placeholder="Enter an animal"
+                    autoComplete="off"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -282,7 +294,11 @@ export default function AnswersForm({
               <FormItem>
                 <FormLabel>Fruits</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Enter a fruit" />
+                  <Input
+                    {...field}
+                    placeholder="Enter a fruit"
+                    autoComplete="off"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -295,7 +311,11 @@ export default function AnswersForm({
               <FormItem className="col-span-2">
                 <FormLabel>Countries</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Enter a country" />
+                  <Input
+                    {...field}
+                    placeholder="Enter a country"
+                    autoComplete="off"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
