@@ -36,7 +36,7 @@ export interface SelectWithSearchProps {
   disabled?: boolean;
   options?: SelectOption[];
   fetchUrl?: string;
-  transformData?: (data: any) => SelectOption[];
+  transformData?: (data: unknown) => SelectOption[];
   id?: string;
   allowCustomInput?: boolean;
   customInputMessage?: string;

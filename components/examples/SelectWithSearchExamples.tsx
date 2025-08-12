@@ -13,9 +13,20 @@ const frameworkOptions: SelectOption[] = [
 ];
 
 // Example 2: Transform function for API data
-const transformCountries = (data: any[]): SelectOption[] => {
+const transformCountries = (data: unknown): SelectOption[] => {
+  if (!Array.isArray(data)) return [];
+
   return data
-    .filter((country) => country.name && country.name.common) // Filter out invalid entries
+    .filter(
+      (country): country is { name: { common: string } } =>
+        typeof country === "object" &&
+        country !== null &&
+        "name" in country &&
+        typeof country.name === "object" &&
+        country.name !== null &&
+        "common" in country.name &&
+        typeof country.name.common === "string",
+    )
     .map((country) => ({
       value: country.name.common, // Use common name as value
       label: country.name.common, // Use common name as label
@@ -24,9 +35,17 @@ const transformCountries = (data: any[]): SelectOption[] => {
 };
 
 // Example 3: Transform function for fruits API
-const transformFruits = (data: any[]): SelectOption[] => {
+const transformFruits = (data: unknown): SelectOption[] => {
+  if (!Array.isArray(data)) return [];
+
   return data
-    .filter((fruit) => fruit.name) // Filter out invalid entries
+    .filter(
+      (fruit): fruit is { name: string } =>
+        typeof fruit === "object" &&
+        fruit !== null &&
+        "name" in fruit &&
+        typeof fruit.name === "string",
+    )
     .map((fruit) => ({
       value: fruit.name,
       label: fruit.name,
@@ -35,11 +54,25 @@ const transformFruits = (data: any[]): SelectOption[] => {
 };
 
 // Example 4: Transform function for different API
-const transformUsers = (data: any[]): SelectOption[] => {
-  return data.map((user) => ({
-    value: user.id.toString(),
-    label: `${user.name} (${user.email})`,
-  }));
+const transformUsers = (data: unknown): SelectOption[] => {
+  if (!Array.isArray(data)) return [];
+
+  return data
+    .filter(
+      (user): user is { id: number; name: string; email: string } =>
+        typeof user === "object" &&
+        user !== null &&
+        "id" in user &&
+        "name" in user &&
+        "email" in user &&
+        typeof user.id === "number" &&
+        typeof user.name === "string" &&
+        typeof user.email === "string",
+    )
+    .map((user) => ({
+      value: user.id.toString(),
+      label: `${user.name} (${user.email})`,
+    }));
 };
 
 export default function SelectWithSearchExamples() {

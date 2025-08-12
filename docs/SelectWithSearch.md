@@ -67,9 +67,20 @@ function CountrySelector() {
 
 ```tsx
 // Transform function for API data
-const transformCountries = (data: any[]): SelectOption[] => {
+const transformCountries = (data: unknown): SelectOption[] => {
+  if (!Array.isArray(data)) return [];
+
   return data
-    .filter((country) => country.name && country.name.common) // Filter out invalid entries
+    .filter(
+      (country): country is { name: { common: string } } =>
+        typeof country === "object" &&
+        country !== null &&
+        "name" in country &&
+        typeof country.name === "object" &&
+        country.name !== null &&
+        "common" in country.name &&
+        typeof country.name.common === "string",
+    )
     .map((country) => ({
       value: country.name.common,
       label: country.name.common,
@@ -95,22 +106,22 @@ function CountrySelectorWithAPI() {
 
 ## Props
 
-| Prop                 | Type                            | Default               | Description                                 |
-| -------------------- | ------------------------------- | --------------------- | ------------------------------------------- |
-| `value`              | `string`                        | `""`                  | Current selected value                      |
-| `onValueChange`      | `(value: string) => void`       | -                     | Callback when selection changes             |
-| `placeholder`        | `string`                        | `"Select option..."`  | Placeholder text when no option is selected |
-| `searchPlaceholder`  | `string`                        | `"Search..."`         | Placeholder text for search input           |
-| `emptyMessage`       | `string`                        | `"No options found."` | Message when no options match search        |
-| `label`              | `string`                        | -                     | Optional label for the select               |
-| `className`          | `string`                        | -                     | Additional CSS classes                      |
-| `disabled`           | `boolean`                       | `false`               | Whether the select is disabled              |
-| `options`            | `SelectOption[]`                | -                     | Static options array                        |
-| `fetchUrl`           | `string`                        | -                     | URL to fetch options from                   |
-| `transformData`      | `(data: any) => SelectOption[]` | -                     | Function to transform API response          |
-| `id`                 | `string`                        | -                     | Custom ID for the select element            |
-| `allowCustomInput`   | `boolean`                       | `false`               | Allow users to add custom options by typing |
-| `customInputMessage` | `string`                        | `"Add custom option"` | Message shown for custom input option       |
+| Prop                 | Type                                | Default               | Description                                 |
+| -------------------- | ----------------------------------- | --------------------- | ------------------------------------------- |
+| `value`              | `string`                            | `""`                  | Current selected value                      |
+| `onValueChange`      | `(value: string) => void`           | -                     | Callback when selection changes             |
+| `placeholder`        | `string`                            | `"Select option..."`  | Placeholder text when no option is selected |
+| `searchPlaceholder`  | `string`                            | `"Search..."`         | Placeholder text for search input           |
+| `emptyMessage`       | `string`                            | `"No options found."` | Message when no options match search        |
+| `label`              | `string`                            | -                     | Optional label for the select               |
+| `className`          | `string`                            | -                     | Additional CSS classes                      |
+| `disabled`           | `boolean`                           | `false`               | Whether the select is disabled              |
+| `options`            | `SelectOption[]`                    | -                     | Static options array                        |
+| `fetchUrl`           | `string`                            | -                     | URL to fetch options from                   |
+| `transformData`      | `(data: unknown) => SelectOption[]` | -                     | Function to transform API response          |
+| `id`                 | `string`                            | -                     | Custom ID for the select element            |
+| `allowCustomInput`   | `boolean`                           | `false`               | Allow users to add custom options by typing |
+| `customInputMessage` | `string`                            | `"Add custom option"` | Message shown for custom input option       |
 
 ## Types
 
