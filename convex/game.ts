@@ -14,6 +14,7 @@ export const startGame = mutation({
       status: "playing",
       currentRound: 1,
       currentLetter: letter,
+      roundLetters: { "1": letter },
     });
     return letter;
   },
@@ -207,6 +208,10 @@ export const advanceRound = mutation({
     await ctx.db.patch(playground._id, {
       currentRound: nextRound,
       currentLetter: newLetter,
+      roundLetters: {
+        ...(playground.roundLetters ?? {}),
+        [String(nextRound)]: newLetter,
+      },
     });
 
     return {
@@ -457,15 +462,7 @@ export const getPlaygroundResults = query({
       .filter((q) => q.eq(q.field("playgroundId"), playground._id))
       .collect();
 
-    // Organize results by round - only include rounds with actual data
-    const resultsByRound: Record<
-      number,
-      Array<{
-        username: string;
-        answers: Record<string, string>;
-        score: number;
-      }>
-    > = {};
+    const fieldNames = ["jongens", "meisjes", "dieren", "vruchten", "landen"];
 
     // First, find all rounds that have actual player answers
     const roundsWithData = new Set<number>();
@@ -475,43 +472,159 @@ export const getPlaygroundResults = query({
       }
     }
 
-    // Only process rounds that have data and are within the playground's round limit
-    for (const round of Array.from(roundsWithData).sort((a, b) => a - b)) {
-      if (round <= playground.rounds) {
-        resultsByRound[round] = [];
+    const sortedRounds = Array.from(roundsWithData)
+      .filter((r) => r <= playground.rounds)
+      .sort((a, b) => a - b);
 
-        // Include ALL players for each round, even if they didn't submit
+    const roundLetters: Record<number, string> = {};
+    const resultsByRound: Record<
+      number,
+      Array<{
+        username: string;
+        answers: Record<string, string>;
+        categoryDetails: Record<
+          string,
+          {
+            answer: string;
+            points: number;
+            isValid: boolean;
+            isDuplicate: boolean;
+            duplicateWith: string[];
+          }
+        >;
+        roundScore: number;
+        score: number;
+      }>
+    > = {};
+
+    for (const round of sortedRounds) {
+      // 1. Determine letter for this round
+      let letter = playground.roundLetters?.[String(round)];
+      if (!letter) {
+        if (round === playground.currentRound && playground.currentLetter) {
+          letter = playground.currentLetter;
+        } else {
+          // Infer letter from first characters of submitted answers in this round
+          const letterCounts: Record<string, number> = {};
+          for (const player of players) {
+            const ans = player.answers.find((a) => a.round === round);
+            if (ans) {
+              for (const val of Object.values(ans.fields)) {
+                const trimmed = (val ?? "").trim();
+                if (trimmed.length > 0) {
+                  const ch = trimmed[0].toUpperCase();
+                  letterCounts[ch] = (letterCounts[ch] ?? 0) + 1;
+                }
+              }
+            }
+          }
+          const top = Object.entries(letterCounts).sort((a, b) => b[1] - a[1])[0];
+          letter = top ? top[0] : (playground.currentLetter || "A");
+        }
+      }
+      roundLetters[round] = letter;
+
+      // 2. Group answers by category for this round
+      const categoryAnswerCounts: Record<
+        string,
+        Record<string, Array<{ playerId: string; username: string }>>
+      > = {};
+
+      for (const fieldName of fieldNames) {
+        categoryAnswerCounts[fieldName] = {};
         for (const player of players) {
           const roundAnswer = player.answers.find((a) => a.round === round);
-
-          if (roundAnswer) {
-            // Player submitted answers for this round
-            resultsByRound[round].push({
-              username: player.username,
-              answers: roundAnswer.fields,
-              score: player.score,
-            });
-          } else {
-            // Player didn't submit answers for this round - show empty answers
-            const emptyAnswers: Record<string, string> = {};
-            const fieldNames = [
-              "jongens",
-              "meisjes",
-              "dieren",
-              "vruchten",
-              "landen",
-            ];
-            for (const field of fieldNames) {
-              emptyAnswers[field] = "";
+          const raw = (roundAnswer?.fields?.[fieldName] ?? "").trim().toLowerCase();
+          if (raw) {
+            if (!categoryAnswerCounts[fieldName][raw]) {
+              categoryAnswerCounts[fieldName][raw] = [];
             }
-
-            resultsByRound[round].push({
+            categoryAnswerCounts[fieldName][raw].push({
+              playerId: player._id,
               username: player.username,
-              answers: emptyAnswers,
-              score: player.score,
             });
           }
         }
+      }
+
+      // 3. Validate all unique answers per category concurrently
+      const categoryValidityMap: Record<string, Map<string, boolean>> = {};
+      await Promise.all(
+        fieldNames.map(async (fieldName) => {
+          const uniqueAnswers = Object.keys(categoryAnswerCounts[fieldName]);
+          const entries = await Promise.all(
+            uniqueAnswers.map(async (ans) => {
+              const valid = await isAnswerValid(ctx, fieldName, ans, letter!);
+              return [ans, valid] as const;
+            }),
+          );
+          categoryValidityMap[fieldName] = new Map<string, boolean>(entries);
+        }),
+      );
+
+      resultsByRound[round] = [];
+
+      // 4. Construct player results with category points and duplicate detection
+      for (const player of players) {
+        const roundAnswer = player.answers.find((a) => a.round === round);
+        const playerAnswers: Record<string, string> = {};
+        const categoryDetails: Record<
+          string,
+          {
+            answer: string;
+            points: number;
+            isValid: boolean;
+            isDuplicate: boolean;
+            duplicateWith: string[];
+          }
+        > = {};
+
+        let roundScore = 0;
+
+        for (const fieldName of fieldNames) {
+          const raw = roundAnswer?.fields?.[fieldName] ?? "";
+          playerAnswers[fieldName] = raw;
+
+          const normalized = raw.trim().toLowerCase();
+          if (!normalized) {
+            categoryDetails[fieldName] = {
+              answer: "",
+              points: 0,
+              isValid: false,
+              isDuplicate: false,
+              duplicateWith: [],
+            };
+          } else {
+            const matches = categoryAnswerCounts[fieldName][normalized] || [];
+            const isDuplicate = matches.length > 1;
+            const duplicateWith = isDuplicate
+              ? matches
+                  .filter((m) => m.username !== player.username)
+                  .map((m) => m.username)
+              : [];
+            const isValid =
+              categoryValidityMap[fieldName]?.get(normalized) ?? false;
+            const points = isValid ? (isDuplicate ? 5 : 10) : 0;
+
+            roundScore += points;
+
+            categoryDetails[fieldName] = {
+              answer: raw,
+              points,
+              isValid,
+              isDuplicate,
+              duplicateWith,
+            };
+          }
+        }
+
+        resultsByRound[round].push({
+          username: player.username,
+          answers: playerAnswers,
+          categoryDetails,
+          roundScore,
+          score: player.score,
+        });
       }
     }
 
@@ -522,11 +635,10 @@ export const getPlaygroundResults = query({
         status: playground.status,
         currentRound: playground.currentRound,
       },
+      roundLetters,
       resultsByRound,
-      roundsPlayed: Array.from(Object.keys(resultsByRound))
-        .map(Number)
-        .sort((a, b) => a - b),
-      fieldNames: ["jongens", "meisjes", "dieren", "vruchten", "landen"],
+      roundsPlayed: sortedRounds,
+      fieldNames,
     };
   },
 });
@@ -566,6 +678,7 @@ export const resetGameAndRestart = mutation({
       status: "waiting",
       currentRound: 1,
       currentLetter: newLetter,
+      roundLetters: { "1": newLetter },
     });
 
     // Then immediately set to playing to trigger proper state updates
