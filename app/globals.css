@@ -210,3 +210,42 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes letter-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes timer-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-letter-pop {
+  animation: letter-pop 450ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-timer-pulse {
+  animation: timer-pulse 1s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-letter-pop,
+  .animate-timer-pulse {
+    animation: none !important;
+  }
+}
+
