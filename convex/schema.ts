@@ -28,4 +28,11 @@ export default defineSchema({
       }),
     ), // array of { round: number, fields: Record<string, string> }
   }).index("by_playground", ["playgroundId", "username"]),
+   data: defineTable({
+    man: v.string(),
+    woman: v.string(),
+    fruit: v.string(),
+    country: v.string(),
+    animal: v.string(),
+  }),
 });
