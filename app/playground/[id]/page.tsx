@@ -151,9 +151,9 @@ export default function Page() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground antialiased selection:bg-primary/20">
+    <div className="bg-background text-foreground selection:bg-primary/20 min-h-screen antialiased">
       {/* Top Bar Navigation */}
-      <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
+      <header className="border-border/40 bg-background/80 sticky top-0 z-40 w-full border-b backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <Link
@@ -161,7 +161,7 @@ export default function Page() {
               className="flex items-center gap-1.5 text-sm font-semibold tracking-tight transition-opacity hover:opacity-80"
               title="Return home"
             >
-              <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+              <ArrowLeft className="text-muted-foreground h-4 w-4" />
               <span>Thinkfast</span>
             </Link>
 
@@ -170,35 +170,41 @@ export default function Page() {
             {/* Room Code Badge */}
             <button
               onClick={handleCopyCode}
-              className="group inline-flex items-center gap-1.5 rounded-lg bg-muted/60 px-2.5 py-1 text-xs font-mono font-medium text-foreground transition-all hover:bg-muted active:scale-95 cursor-pointer"
+              className="group bg-muted/60 text-foreground hover:bg-muted inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-2.5 py-1 font-mono text-xs font-medium transition-all active:scale-95"
               title="Click to copy room code"
             >
-              <span className="text-muted-foreground font-sans text-[11px]">Room</span>
-              <span className="font-semibold tracking-wide uppercase">{playgroundCode}</span>
+              <span className="text-muted-foreground font-sans text-[11px]">
+                Room
+              </span>
+              <span className="font-semibold tracking-wide uppercase">
+                {playgroundCode}
+              </span>
               {copied ? (
                 <Check className="h-3 w-3 text-emerald-500" />
               ) : (
-                <Copy className="h-3 w-3 text-muted-foreground transition-colors group-hover:text-foreground" />
+                <Copy className="text-muted-foreground group-hover:text-foreground h-3 w-3 transition-colors" />
               )}
             </button>
           </div>
 
           <div className="flex items-center gap-3">
             {/* Player Info & Score */}
-            <div className="flex items-center gap-2 rounded-xl bg-card border border-border/50 px-3 py-1.5">
-              <span className="text-xs font-medium text-muted-foreground hidden sm:inline">
+            <div className="bg-card border-border/50 flex items-center gap-2 rounded-xl border px-3 py-1.5">
+              <span className="text-muted-foreground hidden text-xs font-medium sm:inline">
                 Player:
               </span>
-              <span className="text-sm font-semibold truncate max-w-[120px]">
+              <span className="max-w-30 truncate text-sm font-semibold">
                 {username || "Guest"}
               </span>
               <span className="text-border mx-0.5">·</span>
               <span className="flex items-center gap-1 text-xs font-semibold text-amber-500">
                 <Trophy className="h-3.5 w-3.5" />
-                <span className="font-mono tabular-nums text-sm font-bold">
+                <span className="font-mono text-sm font-bold tabular-nums">
                   {playerScore?.score ?? 0}
                 </span>
-                <span className="text-[10px] text-muted-foreground font-sans">pts</span>
+                <span className="text-muted-foreground font-sans text-[10px]">
+                  pts
+                </span>
               </span>
             </div>
 
@@ -208,18 +214,21 @@ export default function Page() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 rounded-xl hover:bg-muted cursor-pointer"
+                  className="hover:bg-muted h-9 w-9 cursor-pointer rounded-xl"
                   title="Settings"
                 >
-                  <Settings className="h-4 w-4 text-muted-foreground transition-transform hover:rotate-45" />
+                  <Settings className="text-muted-foreground h-4 w-4 transition-transform hover:rotate-45" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-48 rounded-2xl p-2 border border-border shadow-md" align="end">
+              <PopoverContent
+                className="border-border w-48 rounded-2xl border p-2 shadow-md"
+                align="end"
+              >
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleLeavePlayground}
-                  className="w-full justify-start gap-2.5 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive w-full cursor-pointer justify-start gap-2.5 rounded-xl"
                 >
                   <LogOut className="h-4 w-4" />
                   Leave Playground
@@ -231,32 +240,39 @@ export default function Page() {
       </header>
 
       {/* Main Game Screen */}
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:py-10">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8 lg:items-start">
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start lg:gap-8">
           {/* Main Play Area (Col 1 to 8 on desktop) */}
           <div className="space-y-6 lg:col-span-8">
             {/* Centerpiece Hero Letter & Controls */}
             {playgroundData && (
-              <LetterHero playgroundData={playgroundData} playgroundCode={playgroundCode} />
+              <LetterHero
+                playgroundData={playgroundData}
+                playgroundCode={playgroundCode}
+              />
             )}
 
             {/* Answer Categories Form Card */}
-            {playgroundData && (
-              <GameCard playgroundData={playgroundData} />
-            )}
+            {playgroundData && <GameCard playgroundData={playgroundData} />}
 
             {/* Mobile Collapsible Leaderboard */}
             {playgroundData && (
               <div className="block lg:hidden">
-                <MobileLeaderboard playgroundCode={playgroundData.code} currentUsername={username} />
+                <MobileLeaderboard
+                  playgroundCode={playgroundData.code}
+                  currentUsername={username}
+                />
               </div>
             )}
           </div>
 
           {/* Desktop Leaderboard Sidebar (Col 9 to 12 on desktop) */}
           {playgroundData && (
-            <aside className="hidden lg:block lg:col-span-4 lg:sticky lg:top-24">
-              <DesktopLeaderboard playgroundCode={playgroundData.code} currentUsername={username} />
+            <aside className="hidden lg:sticky lg:top-24 lg:col-span-4 lg:block">
+              <DesktopLeaderboard
+                playgroundCode={playgroundData.code}
+                currentUsername={username}
+              />
             </aside>
           )}
         </div>
@@ -330,20 +346,20 @@ function LetterHero({
   const isFinished = playgroundData.status === "finished";
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-card p-6 text-center sm:p-10 transition-all">
+    <div className="border-border/60 bg-card relative overflow-hidden rounded-3xl border p-6 text-center transition-all sm:p-10">
       {/* Subtle background glow when active */}
       {isPlaying && (
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-radial from-primary/5 via-transparent to-transparent opacity-70" />
+        <div className="from-primary/5 pointer-events-none absolute inset-0 -z-10 bg-radial via-transparent to-transparent opacity-70" />
       )}
 
       {/* Header Info Line */}
-      <div className="flex items-center justify-between text-xs sm:text-sm text-muted-foreground font-medium pb-2 border-b border-border/30">
+      <div className="text-muted-foreground border-border/30 flex items-center justify-between border-b pb-2 text-xs font-medium sm:text-sm">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-foreground">
+          <span className="text-foreground font-semibold">
             Round {playgroundData.currentRound} of {playgroundData.rounds}
           </span>
           {playgroundData.forDummies && (
-            <span className="rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+            <span className="bg-muted text-muted-foreground rounded-md px-2 py-0.5 text-[11px] font-medium">
               Dummy mode
             </span>
           )}
@@ -355,7 +371,7 @@ function LetterHero({
             <Button
               size="sm"
               variant={isWaiting ? "default" : "outline"}
-              className="h-8 gap-1.5 rounded-lg font-medium cursor-pointer"
+              className="h-8 cursor-pointer gap-1.5 rounded-lg font-medium"
             >
               {isWaiting ? (
                 <>
@@ -375,7 +391,7 @@ function LetterHero({
               )}
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent className="rounded-2xl border border-border">
+          <AlertDialogContent className="border-border rounded-2xl border">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-center text-lg">
                 {isWaiting
@@ -385,8 +401,10 @@ function LetterHero({
                     : "End or restart the current round?"}
               </AlertDialogTitle>
             </AlertDialogHeader>
-            <AlertDialogFooter className="sm:justify-center gap-2">
-              <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogFooter className="gap-2 sm:justify-center">
+              <AlertDialogCancel className="rounded-xl">
+                Cancel
+              </AlertDialogCancel>
               <AlertDialogAction onClick={startGame} className="rounded-xl">
                 Continue
               </AlertDialogAction>
@@ -396,45 +414,49 @@ function LetterHero({
       </div>
 
       {/* Dominant Letter Anchor */}
-      <div className="py-6 sm:py-10">
+      <div className="py-4 sm:py-6">
         {isPlaying ? (
           <div className="flex flex-col items-center justify-center">
             <span
               key={`${playgroundData.currentRound}-${letter}`}
-              className="animate-letter-pop font-black tracking-tighter leading-none select-none text-primary"
-              style={{ fontSize: "clamp(6rem, 18vw, 13rem)" }}
+              className="animate-letter-pop text-primary leading-none font-black tracking-tighter select-none"
+              style={{ fontSize: "clamp(4rem, 10vw, 9rem)" }}
             >
               {letter || "—"}
             </span>
-            <p className="mt-2 text-sm sm:text-base font-medium text-muted-foreground">
+            <p className="text-muted-foreground mt-2 text-sm font-medium sm:text-base">
               All answers must begin with{" "}
-              <strong className="text-foreground uppercase">&quot;{letter}&quot;</strong>
+              <strong className="text-foreground uppercase">
+                &quot;{letter}&quot;
+              </strong>
             </p>
           </div>
         ) : isWaiting ? (
-          <div className="py-4 space-y-3">
-            <div className="mx-auto flex h-24 w-24 sm:h-28 sm:w-28 items-center justify-center rounded-3xl bg-muted/50 text-muted-foreground">
+          <div className="space-y-3 py-4">
+            <div className="bg-muted/50 text-muted-foreground mx-auto flex h-24 w-24 items-center justify-center rounded-3xl sm:h-28 sm:w-28">
               <span className="text-5xl font-black">?</span>
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              <h2 className="text-foreground text-xl font-bold tracking-tight sm:text-2xl">
                 Ready to play Thinkfast
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Waiting for host to start Round 1. Timer is set to {playgroundData.timer}s.
+              <p className="text-muted-foreground mt-1 text-sm">
+                Waiting for host to start Round 1. Timer is set to{" "}
+                {playgroundData.timer}s.
               </p>
             </div>
           </div>
         ) : (
-          <div className="py-4 space-y-3">
+          <div className="space-y-3 py-4">
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-amber-500/10 text-amber-500">
               <Trophy className="h-10 w-10" />
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            <h2 className="text-foreground text-xl font-bold tracking-tight sm:text-2xl">
               Game Finished!
             </h2>
-            <p className="text-sm text-muted-foreground">
-              All {playgroundData.rounds} rounds are complete. Check the leaderboard for rankings!
+            <p className="text-muted-foreground text-sm">
+              All {playgroundData.rounds} rounds are complete. Check the
+              leaderboard for rankings!
             </p>
           </div>
         )}
@@ -442,9 +464,11 @@ function LetterHero({
 
       {/* Countdown Timer Bar */}
       {isPlaying && (
-        <div className="flex items-center justify-center gap-2 pt-2 border-t border-border/30">
-          <span className="text-sm font-medium text-muted-foreground">Time Remaining:</span>
-          <span className="text-base sm:text-lg font-bold font-mono">
+        <div className="border-border/30 flex items-center justify-center gap-2 border-t pt-2">
+          <span className="text-muted-foreground text-sm font-medium">
+            Time Remaining:
+          </span>
+          <span className="font-mono text-base font-bold sm:text-lg">
             <AnimatedTimer seconds={timeLeft} />
           </span>
         </div>
@@ -462,17 +486,17 @@ function GameCard({ playgroundData }: { playgroundData: Doc<"playgrounds"> }) {
     searchParams.get("mode") === "dummy" || playgroundData?.forDummies;
 
   return (
-    <div className="rounded-3xl border border-border/60 bg-card p-6 sm:p-8">
+    <div className="border-border/60 bg-card rounded-3xl border p-6 sm:p-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
+          <h2 className="text-foreground text-lg font-bold tracking-tight sm:text-xl">
             Categories
           </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-xs sm:text-sm">
             Quickly fill in each word before time runs out
           </p>
         </div>
-        <Sparkles className="h-5 w-5 text-muted-foreground/60" />
+        <Sparkles className="text-muted-foreground/60 h-5 w-5" />
       </div>
 
       {isDummyMode ? (
@@ -499,21 +523,21 @@ function DesktopLeaderboard({
   });
 
   return (
-    <div className="rounded-3xl border border-border/60 bg-card p-6 space-y-4">
-      <div className="flex items-center justify-between border-b border-border/40 pb-3">
+    <div className="border-border/60 bg-card space-y-4 rounded-3xl border p-6">
+      <div className="border-border/40 flex items-center justify-between border-b pb-3">
         <div className="flex items-center gap-2">
           <Trophy className="h-4 w-4 text-amber-500" />
-          <h2 className="text-base font-bold tracking-tight text-foreground">
+          <h2 className="text-foreground text-base font-bold tracking-tight">
             Leaderboard
           </h2>
         </div>
-        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+        <span className="text-muted-foreground flex items-center gap-1 text-xs">
           <Users className="h-3.5 w-3.5" />
           {leaderboard?.length || 0}
         </span>
       </div>
 
-      <div className="space-y-1.5 max-h-[60vh] overflow-y-auto pr-1">
+      <div className="max-h-[60vh] space-y-1.5 overflow-y-auto pr-1">
         {leaderboard && leaderboard.length > 0 ? (
           leaderboard.map((player, index) => {
             const isSelf = player.username === currentUsername;
@@ -522,11 +546,11 @@ function DesktopLeaderboard({
                 key={player.username}
                 className={`flex items-center justify-between rounded-xl px-3 py-2.5 transition-colors ${
                   isSelf
-                    ? "bg-primary/10 border border-primary/20 text-foreground"
+                    ? "bg-primary/10 border-primary/20 text-foreground border"
                     : "hover:bg-muted/50 text-foreground"
                 }`}
               >
-                <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex min-w-0 items-center gap-2.5">
                   <span
                     className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
                       index === 0
@@ -540,23 +564,23 @@ function DesktopLeaderboard({
                   >
                     {index + 1}
                   </span>
-                  <span className="text-sm font-medium truncate">
+                  <span className="truncate text-sm font-medium">
                     {player.username}
                     {isSelf && (
-                      <span className="ml-1.5 text-[11px] font-normal text-muted-foreground">
+                      <span className="text-muted-foreground ml-1.5 text-[11px] font-normal">
                         (You)
                       </span>
                     )}
                   </span>
                 </div>
-                <span className="font-mono tabular-nums text-sm font-bold text-amber-500 ml-2">
+                <span className="ml-2 font-mono text-sm font-bold text-amber-500 tabular-nums">
                   {player.score}
                 </span>
               </div>
             );
           })
         ) : (
-          <div className="py-8 text-center text-sm text-muted-foreground">
+          <div className="text-muted-foreground py-8 text-center text-sm">
             No players recorded yet
           </div>
         )}
@@ -580,19 +604,19 @@ function MobileLeaderboard({
   });
 
   return (
-    <details className="group rounded-2xl border border-border/60 bg-card p-4 transition-all [&_summary::-webkit-details-marker]:hidden">
+    <details className="group border-border/60 bg-card rounded-2xl border p-4 transition-all [&_summary::-webkit-details-marker]:hidden">
       <summary className="flex cursor-pointer items-center justify-between select-none">
-        <div className="flex items-center gap-2 font-semibold text-sm text-foreground">
+        <div className="text-foreground flex items-center gap-2 text-sm font-semibold">
           <Trophy className="h-4 w-4 text-amber-500" />
           <span>Leaderboard</span>
-          <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-normal text-muted-foreground">
+          <span className="bg-muted text-muted-foreground rounded-md px-2 py-0.5 text-xs font-normal">
             {leaderboard?.length || 0} players
           </span>
         </div>
-        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
+        <ChevronDown className="text-muted-foreground h-4 w-4 transition-transform duration-200 group-open:rotate-180" />
       </summary>
 
-      <div className="mt-4 space-y-1.5 border-t border-border/40 pt-3">
+      <div className="border-border/40 mt-4 space-y-1.5 border-t pt-3">
         {leaderboard && leaderboard.length > 0 ? (
           leaderboard.map((player, index) => {
             const isSelf = player.username === currentUsername;
@@ -601,12 +625,12 @@ function MobileLeaderboard({
                 key={player.username}
                 className={`flex items-center justify-between rounded-xl px-3 py-2 text-sm ${
                   isSelf
-                    ? "bg-primary/10 font-semibold text-foreground"
+                    ? "bg-primary/10 text-foreground font-semibold"
                     : "text-foreground"
                 }`}
               >
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-5 text-xs font-mono text-muted-foreground">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="text-muted-foreground w-5 font-mono text-xs">
                     #{index + 1}
                   </span>
                   <span className="truncate">
@@ -621,7 +645,7 @@ function MobileLeaderboard({
             );
           })
         ) : (
-          <p className="text-center text-xs text-muted-foreground py-2">
+          <p className="text-muted-foreground py-2 text-center text-xs">
             No players yet
           </p>
         )}
@@ -629,4 +653,3 @@ function MobileLeaderboard({
     </details>
   );
 }
-
