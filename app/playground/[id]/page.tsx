@@ -304,43 +304,89 @@ function LetterHero({
   playgroundCode: string;
 }) {
   const { letter, isPlaying } = useGameLetter();
-  const game = useMutation(api.game.startGame);
+  const startGameMutation = useMutation(api.game.startGame);
+  const resetGameAndRestart = useMutation(api.game.resetGameAndRestart);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   const startGame = async () => {
     try {
-      await toast.promise(game({ playgroundId: playgroundData._id }), {
-        loading: "Starting game...",
-        success: "The round has started!",
-        error: "Failed to start game",
-      });
+      if (playgroundData.status === "finished") {
+        await toast.promise(resetGameAndRestart({ code: playgroundCode }), {
+          loading: "Restarting game...",
+          success: "Game restarted! Get ready for round 1!",
+          error: "Failed to restart game",
+        });
+      } else {
+        await toast.promise(
+          startGameMutation({ playgroundId: playgroundData._id }),
+          {
+            loading: "Starting game...",
+            success: "The round has started!",
+            error: "Failed to start game",
+          },
+        );
+      }
     } catch (error) {
       console.error("Error starting game:", error);
     }
   };
 
-  // Countdown timer logic
+  // Countdown timer logic with server timestamp & localStorage synchronization
   useEffect(() => {
-    if (!playgroundData?.timer || !isPlaying) return;
+    if (!playgroundData?.timer || !isPlaying) {
+      setTimeLeft(null);
+      return;
+    }
 
-    const startTimer = setTimeout(() => {
-      setTimeLeft(playgroundData.timer);
+    const storageKey = `thinkfast_timer_${playgroundCode}_r${playgroundData.currentRound}`;
 
-      const interval = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (!prev || prev <= 1) {
-            clearInterval(interval);
-            return 0;
+    const calculateRemaining = () => {
+      const now = Date.now();
+      const serverEndsAt = playgroundData.roundEndsAt;
+
+      if (serverEndsAt && typeof serverEndsAt === "number") {
+        const remaining = Math.max(0, Math.ceil((serverEndsAt - now) / 1000));
+        if (typeof window !== "undefined") {
+          localStorage.setItem(storageKey, String(serverEndsAt));
+        }
+        return remaining;
+      }
+
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          const target = Number(saved);
+          if (!isNaN(target)) {
+            return Math.max(0, Math.ceil((target - now) / 1000));
           }
-          return prev - 1;
-        });
-      }, 1000);
+        }
+        const newEndsAt = now + playgroundData.timer * 1000;
+        localStorage.setItem(storageKey, String(newEndsAt));
+      }
 
-      return () => clearInterval(interval);
-    }, 100);
+      return playgroundData.timer;
+    };
 
-    return () => clearTimeout(startTimer);
-  }, [playgroundData?.timer, playgroundData?.currentRound, isPlaying]);
+    const initial = calculateRemaining();
+    setTimeLeft(initial);
+
+    const interval = setInterval(() => {
+      const remaining = calculateRemaining();
+      setTimeLeft(remaining);
+
+      if (remaining <= 0) {
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [
+    playgroundData?.timer,
+    playgroundData?.currentRound,
+    playgroundData?.roundEndsAt,
+    playgroundCode,
+    isPlaying,
+  ]);
 
   const isWaiting = playgroundData.status === "waiting";
   const isFinished = playgroundData.status === "finished";

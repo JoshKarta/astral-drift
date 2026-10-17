@@ -74,46 +74,81 @@ export default function AnswersFormForDummy({
       : "skip",
   );
 
-  // Reset submitted state when round changes
+  // Reset submitted state when round changes or game status restarts
   React.useEffect(() => {
     setHasSubmitted(false);
-    setIsTimerActive(false); // Reset timer active state on round change
-  }, [playgroundData?.currentRound]);
+    setIsTimerActive(false);
+    form.reset({
+      fields: {
+        jongens: "",
+        meisjes: "",
+        dieren: "",
+        vruchten: "",
+        landen: "",
+      },
+    });
+  }, [playgroundData?.currentRound, playgroundData?.status, form]);
 
-  // Countdown
+  // Countdown with server timestamp and localStorage synchronization
   React.useEffect(() => {
     if (!playgroundData?.timer || !isPlaying) {
       setIsTimerActive(false);
+      setTimeLeft(null);
       return;
     }
 
-    // Add a small delay to prevent race conditions during restart
-    const startTimer = setTimeout(() => {
-      setTimeLeft(playgroundData.timer);
-      setIsTimerActive(true);
+    const storageKey = `thinkfast_timer_${playgroundData.code}_r${playgroundData.currentRound}`;
 
-      const interval = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (!prev || prev <= 1) {
-            clearInterval(interval);
-            // Don't set isTimerActive to false immediately - let auto-submit handle it
-            return 0;
+    const calculateRemaining = () => {
+      const now = Date.now();
+      const serverEndsAt = playgroundData.roundEndsAt;
+
+      if (serverEndsAt && typeof serverEndsAt === "number") {
+        const remaining = Math.max(0, Math.ceil((serverEndsAt - now) / 1000));
+        if (typeof window !== "undefined") {
+          localStorage.setItem(storageKey, String(serverEndsAt));
+        }
+        return remaining;
+      }
+
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          const target = Number(saved);
+          if (!isNaN(target)) {
+            return Math.max(0, Math.ceil((target - now) / 1000));
           }
-          return prev - 1;
-        });
-      }, 1000);
+        }
+        const newEndsAt = now + playgroundData.timer * 1000;
+        localStorage.setItem(storageKey, String(newEndsAt));
+      }
 
-      return () => {
+      return playgroundData.timer;
+    };
+
+    const initialRemaining = calculateRemaining();
+    setTimeLeft(initialRemaining);
+    setIsTimerActive(initialRemaining > 0);
+
+    const interval = setInterval(() => {
+      const remaining = calculateRemaining();
+      setTimeLeft(remaining);
+
+      if (remaining <= 0) {
         clearInterval(interval);
-        setIsTimerActive(false);
-      };
-    }, 100); // Small delay to prevent race conditions
+      }
+    }, 1000);
 
     return () => {
-      clearTimeout(startTimer);
-      setIsTimerActive(false);
+      clearInterval(interval);
     };
-  }, [playgroundData?.timer, playgroundData?.currentRound, isPlaying]);
+  }, [
+    playgroundData?.timer,
+    playgroundData?.currentRound,
+    playgroundData?.roundEndsAt,
+    playgroundData?.code,
+    isPlaying,
+  ]);
 
   // Auto submit when time ends and advance round
   React.useEffect(() => {
