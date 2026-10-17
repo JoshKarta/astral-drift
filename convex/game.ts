@@ -9,12 +9,31 @@ function getRandomLetter() {
 export const startGame = mutation({
   args: { playgroundId: v.id("playgrounds") },
   handler: async (ctx, { playgroundId }) => {
+    const playground = await ctx.db.get(playgroundId);
+    if (!playground) throw new Error("Playground not found");
+
+    // Clear all player answers and scores when starting or restarting
+    const players = await ctx.db
+      .query("players")
+      .filter((q) => q.eq(q.field("playgroundId"), playgroundId))
+      .collect();
+
+    for (const player of players) {
+      await ctx.db.patch(player._id, {
+        score: 0,
+        answers: [],
+      });
+    }
+
     const letter = getRandomLetter();
+    const endsAt = Date.now() + playground.timer * 1000;
+
     await ctx.db.patch(playgroundId, {
       status: "playing",
       currentRound: 1,
       currentLetter: letter,
       roundLetters: { "1": letter },
+      roundEndsAt: endsAt,
     });
     return letter;
   },
@@ -182,6 +201,11 @@ export const advanceRound = mutation({
       throw new Error("Playground not found");
     }
 
+    // Guard: only advance if the playground is currently playing
+    if (playground.status !== "playing") {
+      return { gameEnded: true, finalRound: playground.currentRound };
+    }
+
     // Calculate scores for the current round before advancing
     await calculateScoresInternal(
       ctx,
@@ -197,12 +221,14 @@ export const advanceRound = mutation({
       // Game is finished
       await ctx.db.patch(playground._id, {
         status: "finished",
+        roundEndsAt: undefined,
       });
       return { gameEnded: true, finalRound: playground.currentRound };
     }
 
     // Generate new letter for next round
     const newLetter = getRandomLetter();
+    const endsAt = Date.now() + playground.timer * 1000;
 
     // Advance to next round
     await ctx.db.patch(playground._id, {
@@ -212,6 +238,7 @@ export const advanceRound = mutation({
         ...(playground.roundLetters ?? {}),
         [String(nextRound)]: newLetter,
       },
+      roundEndsAt: endsAt,
     });
 
     return {
@@ -234,7 +261,7 @@ export const hasPlayerSubmitted = query({
       .filter((q) => q.eq(q.field("code"), code))
       .first();
 
-    if (!playground) {
+    if (!playground || playground.status !== "playing") {
       return false;
     }
 
@@ -672,18 +699,14 @@ export const resetGameAndRestart = mutation({
 
     // Generate new letter for the first round
     const newLetter = getRandomLetter();
+    const endsAt = Date.now() + playground.timer * 1000;
 
-    // First set status to waiting briefly to ensure clean state transition
     await ctx.db.patch(playground._id, {
-      status: "waiting",
+      status: "playing",
       currentRound: 1,
       currentLetter: newLetter,
       roundLetters: { "1": newLetter },
-    });
-
-    // Then immediately set to playing to trigger proper state updates
-    await ctx.db.patch(playground._id, {
-      status: "playing",
+      roundEndsAt: endsAt,
     });
 
     return {

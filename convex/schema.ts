@@ -16,6 +16,7 @@ export default defineSchema({
     currentRound: v.number(),
     currentLetter: v.string(),
     roundLetters: v.optional(v.record(v.string(), v.string())),
+    roundEndsAt: v.optional(v.number()),
     forDummies: v.optional(v.boolean()), // whether this playground is for dummies
   }),
   players: defineTable({
