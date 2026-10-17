@@ -34,5 +34,10 @@ export default defineSchema({
     fruit: v.string(),
     country: v.string(),
     animal: v.string(),
-  }),
+  })
+    .index("by_man", ["man"])
+    .index("by_woman", ["woman"])
+    .index("by_fruit", ["fruit"])
+    .index("by_country", ["country"])
+    .index("by_animal", ["animal"]),
 });

@@ -90,13 +90,19 @@ export const submitAnswers = mutation({
       throw new Error("Answers already submitted for this round");
     }
 
+    // Normalize all answers to lowercase and trimmed strings
+    const normalizedFields: Record<string, string> = {};
+    for (const [key, val] of Object.entries(fields)) {
+      normalizedFields[key] = (val ?? "").trim().toLowerCase();
+    }
+
     // Add the new answer to the player's answers array
     await ctx.db.patch(player._id, {
       answers: [
         ...existingAnswers,
         {
           round: playground.currentRound,
-          fields: fields, // Now correctly matches schema as Record<string, string>
+          fields: normalizedFields,
         },
       ],
     });
@@ -104,6 +110,64 @@ export const submitAnswers = mutation({
     return { success: true, round: playground.currentRound };
   },
 });
+
+const CATEGORY_MAP: Record<
+  string,
+  "man" | "woman" | "animal" | "fruit" | "country"
+> = {
+  jongens: "man",
+  meisjes: "woman",
+  dieren: "animal",
+  vruchten: "fruit",
+  landen: "country",
+  land: "country",
+};
+
+// Validates an answer against the indexed data table
+async function isAnswerValid(
+  ctx: any,
+  category: string,
+  answer: string,
+  letter: string,
+): Promise<boolean> {
+  const normalized = answer.trim().toLowerCase();
+  if (!normalized) return false;
+
+  // 1. Fail fast: Must start with the round's letter
+  if (normalized.charAt(0) !== letter.toLowerCase()) {
+    return false;
+  }
+
+  const field = CATEGORY_MAP[category];
+  if (!field) return false;
+
+  const indexName = `by_${field}` as const;
+
+  // 2. Fast point lookup on index for exact lowercase match
+  const matchLower = await ctx.db
+    .query("data")
+    .withIndex(indexName, (q: any) => q.eq(field, normalized))
+    .first();
+
+  if (matchLower) {
+    return true;
+  }
+
+  // 3. Fallback: Check capitalized / Title Case in case data table has mixed casing
+  const titleCase =
+    normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  if (titleCase !== normalized) {
+    const matchTitle = await ctx.db
+      .query("data")
+      .withIndex(indexName, (q: any) => q.eq(field, titleCase))
+      .first();
+    if (matchTitle) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 export const advanceRound = mutation({
   args: { code: v.string() },
@@ -256,13 +320,22 @@ async function calculateScoresInternal(
       answerCounts[fieldAnswer.answer].push(fieldAnswer.playerId);
     }
 
+    // Validate all unique candidate answers concurrently
+    const uniqueAnswers = Object.keys(answerCounts);
+    const validationEntries = await Promise.all(
+      uniqueAnswers.map(async (ans) => {
+        const valid = await isAnswerValid(ctx, fieldName, ans, letter);
+        return [ans, valid] as const;
+      }),
+    );
+    const validityMap = new Map<string, boolean>(validationEntries);
+
     // Calculate points for each answer
     for (const [answer, playerIds] of Object.entries(answerCounts)) {
-      // Check if answer starts with the correct letter
-      const startsWithLetter =
-        answer.charAt(0).toLowerCase() === letter.toLowerCase();
+      const isValid = validityMap.get(answer) ?? false;
 
-      if (startsWithLetter) {
+      // If invalid or not matching convex data table, players get 0 points
+      if (isValid) {
         const basePoints = 10;
         const duplicateCount = playerIds.length;
         const pointsPerPlayer = duplicateCount > 1 ? 5 : basePoints;
@@ -272,7 +345,6 @@ async function calculateScoresInternal(
           scoreUpdates[playerId] += pointsPerPlayer;
         }
       }
-      // If doesn't start with letter, players get 0 points (no change needed)
     }
   }
 

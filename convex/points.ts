@@ -67,6 +67,56 @@ import { playground } from "./playground";
 //   },
 // });
 
+const CATEGORY_MAP: Record<
+  string,
+  "man" | "woman" | "animal" | "fruit" | "country"
+> = {
+  jongens: "man",
+  meisjes: "woman",
+  dieren: "animal",
+  vruchten: "fruit",
+  landen: "country",
+  land: "country",
+};
+
+async function isAnswerValid(
+  ctx: any,
+  category: string,
+  answer: string,
+  letter: string,
+): Promise<boolean> {
+  const normalized = answer.trim().toLowerCase();
+  if (!normalized) return false;
+
+  if (normalized.charAt(0) !== letter.toLowerCase()) {
+    return false;
+  }
+
+  const field = CATEGORY_MAP[category];
+  if (!field) return false;
+
+  const indexName = `by_${field}` as const;
+
+  const matchLower = await ctx.db
+    .query("data")
+    .withIndex(indexName, (q: any) => q.eq(field, normalized))
+    .first();
+
+  if (matchLower) return true;
+
+  const titleCase =
+    normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  if (titleCase !== normalized) {
+    const matchTitle = await ctx.db
+      .query("data")
+      .withIndex(indexName, (q: any) => q.eq(field, titleCase))
+      .first();
+    if (matchTitle) return true;
+  }
+
+  return false;
+}
+
 export const calculatePoints = mutation({
   args: { code: v.string() },
   handler: async (ctx, { code }) => {
@@ -75,12 +125,14 @@ export const calculatePoints = mutation({
       .filter((q) => q.eq(q.field("code"), code))
       .unique();
 
-    const round = playground?.currentRound;
-    const letter = playground?.currentLetter.toLowerCase();
+    if (!playground) throw new Error("Playground not found");
+
+    const round = playground.currentRound;
+    const letter = playground.currentLetter.toLowerCase();
 
     const players = await ctx.db
       .query("players")
-      .filter((q) => q.eq(q.field("playgroundId"), playground?._id))
+      .filter((q) => q.eq(q.field("playgroundId"), playground._id))
       .collect();
 
     const categories = ["jongens", "meisjes", "dieren", "vruchten", "landen"];
@@ -96,6 +148,7 @@ export const calculatePoints = mutation({
 
       for (const field of categories) {
         const val = (roundAnswer.fields[field] ?? "").trim().toLowerCase();
+        if (!val) continue;
 
         if (!fieldAnswers[field]) fieldAnswers[field] = {};
         if (!fieldAnswers[field][val]) fieldAnswers[field][val] = [];
@@ -104,14 +157,26 @@ export const calculatePoints = mutation({
       }
     }
 
-    // Assign points
+    // Assign points with validation
     for (const field of categories) {
-      for (const [answer, users] of Object.entries(fieldAnswers[field])) {
-        const isValid = answer[0] === letter;
-        const score = !answer || !isValid ? 0 : users.length === 1 ? 10 : 5;
+      const answersForCategory = fieldAnswers[field] ?? {};
+      const uniqueAnswers = Object.keys(answersForCategory);
 
+      const validationEntries = await Promise.all(
+        uniqueAnswers.map(async (ans) => {
+          const valid = await isAnswerValid(ctx, field, ans, letter);
+          return [ans, valid] as const;
+        }),
+      );
+      const validityMap = new Map<string, boolean>(validationEntries);
+
+      for (const [answer, users] of Object.entries(answersForCategory)) {
+        const isValid = validityMap.get(answer) ?? false;
+        if (!isValid) continue;
+
+        const score = users.length === 1 ? 10 : 5;
         for (const user of users) {
-          scoreMap[user] += score;
+          scoreMap[user] = (scoreMap[user] ?? 0) + score;
         }
       }
     }
