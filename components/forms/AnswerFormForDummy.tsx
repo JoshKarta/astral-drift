@@ -127,11 +127,15 @@ export default function AnswersFormForDummy({
 
         // Submit current answers
         const values = form.getValues();
+        const normalizedFields: Record<string, string> = {};
+        for (const [key, val] of Object.entries(values.fields || {})) {
+          normalizedFields[key] = (val || "").trim().toLowerCase();
+        }
         try {
           await submitAnswers({
             username: username as string,
             code: playgroundData.code,
-            fields: values.fields,
+            fields: normalizedFields,
           });
           form.reset();
         } catch (error) {
@@ -160,16 +164,13 @@ export default function AnswersFormForDummy({
     form,
   ]);
 
-  // const onSubmit = (values: FormSchema) => {
-  //   submitAnswers({
-  //     username: username as string,
-  //     code: playgroundData.code,
-  //     fields: values.fields,
-  //   });
-  // };
-
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!username || !playgroundData) return;
+
+    const normalizedFields: Record<string, string> = {};
+    for (const [key, val] of Object.entries(values.fields || {})) {
+      normalizedFields[key] = (val || "").trim().toLowerCase();
+    }
 
     try {
       // Only submit answers - don't advance round
@@ -177,7 +178,7 @@ export default function AnswersFormForDummy({
         submitAnswers({
           username: username as string,
           code: playgroundData.code,
-          fields: values.fields,
+          fields: normalizedFields,
         }),
         {
           loading: "Submitting answers...",

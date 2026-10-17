@@ -122,11 +122,15 @@ export default function AnswersForm({
 
         // Submit current answers
         const values = form.getValues();
+        const normalizedFields: Record<string, string> = {};
+        for (const [key, val] of Object.entries(values.fields || {})) {
+          normalizedFields[key] = (val || "").trim().toLowerCase();
+        }
         try {
           await submitAnswers({
             username: username as string,
             code: playgroundData.code,
-            fields: values.fields,
+            fields: normalizedFields,
           });
           form.reset();
         } catch (error) {
@@ -155,16 +159,13 @@ export default function AnswersForm({
     form,
   ]);
 
-  // const onSubmit = (values: FormSchema) => {
-  //   submitAnswers({
-  //     username: username as string,
-  //     code: playgroundData.code,
-  //     fields: values.fields,
-  //   });
-  // };
-
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!username || !playgroundData) return;
+
+    const normalizedFields: Record<string, string> = {};
+    for (const [key, val] of Object.entries(values.fields || {})) {
+      normalizedFields[key] = (val || "").trim().toLowerCase();
+    }
 
     try {
       // Only submit answers - don't advance round
@@ -172,7 +173,7 @@ export default function AnswersForm({
         submitAnswers({
           username: username as string,
           code: playgroundData.code,
-          fields: values.fields,
+          fields: normalizedFields,
         }),
         {
           loading: "Submitting answers...",
@@ -245,8 +246,10 @@ export default function AnswersForm({
                 <FormControl>
                   <Input
                     {...field}
+                    onChange={(e) => field.onChange(e.target.value.toLowerCase())}
                     placeholder="Enter a boy's name"
                     autoComplete="off"
+                    className="lowercase"
                   />
                 </FormControl>
                 <FormMessage />
@@ -262,8 +265,10 @@ export default function AnswersForm({
                 <FormControl>
                   <Input
                     {...field}
+                    onChange={(e) => field.onChange(e.target.value.toLowerCase())}
                     placeholder="Enter a girl's name"
                     autoComplete="off"
+                    className="lowercase"
                   />
                 </FormControl>
                 <FormMessage />
@@ -279,8 +284,10 @@ export default function AnswersForm({
                 <FormControl>
                   <Input
                     {...field}
+                    onChange={(e) => field.onChange(e.target.value.toLowerCase())}
                     placeholder="Enter an animal"
                     autoComplete="off"
+                    className="lowercase"
                   />
                 </FormControl>
                 <FormMessage />
@@ -296,8 +303,10 @@ export default function AnswersForm({
                 <FormControl>
                   <Input
                     {...field}
+                    onChange={(e) => field.onChange(e.target.value.toLowerCase())}
                     placeholder="Enter a fruit"
                     autoComplete="off"
+                    className="lowercase"
                   />
                 </FormControl>
                 <FormMessage />
@@ -313,8 +322,10 @@ export default function AnswersForm({
                 <FormControl>
                   <Input
                     {...field}
+                    onChange={(e) => field.onChange(e.target.value.toLowerCase())}
                     placeholder="Enter a country"
                     autoComplete="off"
+                    className="lowercase"
                   />
                 </FormControl>
                 <FormMessage />
