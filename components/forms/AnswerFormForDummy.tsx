@@ -199,60 +199,67 @@ export default function AnswersFormForDummy({
 
   if (!isPlaying) {
     return (
-      <p className="text-center text-neutral-400">
-        Waiting for game to start...
-      </p>
+      <div className="py-12 text-center">
+        <p className="text-base text-muted-foreground">
+          Waiting for the host to start the round...
+        </p>
+      </div>
     );
   }
 
   if (hasSubmitted || playerSubmitted) {
     return (
-      <div className="py-8 text-center">
-        <div className="mb-4">
-          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-            <svg
-              className="h-8 w-8 text-green-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </div>
+      <div className="py-10 text-center space-y-4">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <svg
+            className="h-8 w-8"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
         </div>
-        <h3 className="mb-2 text-lg font-semibold text-gray-900">
-          Answers Submitted!
-        </h3>
-        <p className="mb-4 text-gray-600">
-          Waiting for other players to finish or timer to expire...
-        </p>
-        <p className="text-sm text-gray-500">
-          Time remaining: <AnimatedTimer seconds={timeLeft} />
-        </p>
+        <div>
+          <h3 className="text-xl font-bold tracking-tight text-foreground">
+            Answers Submitted
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Waiting for other players or round timer to conclude
+          </p>
+        </div>
+        <div className="inline-flex items-center gap-2 rounded-xl bg-muted/50 px-4 py-2 text-sm font-medium">
+          <span>Time remaining:</span>
+          <AnimatedTimer seconds={timeLeft} />
+        </div>
       </div>
     );
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField
             control={form.control}
             name="fields.jongens"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Boys</FormLabel>
+              <FormItem className="space-y-1.5">
+                <FormLabel className="text-sm font-medium text-foreground">
+                  Boy&apos;s name
+                </FormLabel>
                 <FormControl>
                   <Input
                     {...field}
+                    onChange={(e) => field.onChange(e.target.value.toLowerCase())}
                     placeholder="Enter a boy's name"
                     autoComplete="off"
+                    className="h-12 rounded-xl text-base lowercase bg-background/60 transition-all focus-visible:ring-primary/30"
                   />
                 </FormControl>
                 <FormMessage />
@@ -263,13 +270,17 @@ export default function AnswersFormForDummy({
             control={form.control}
             name="fields.meisjes"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Girls</FormLabel>
+              <FormItem className="space-y-1.5">
+                <FormLabel className="text-sm font-medium text-foreground">
+                  Girl&apos;s name
+                </FormLabel>
                 <FormControl>
                   <Input
                     {...field}
+                    onChange={(e) => field.onChange(e.target.value.toLowerCase())}
                     placeholder="Enter a girl's name"
                     autoComplete="off"
+                    className="h-12 rounded-xl text-base lowercase bg-background/60 transition-all focus-visible:ring-primary/30"
                   />
                 </FormControl>
                 <FormMessage />
@@ -280,13 +291,17 @@ export default function AnswersFormForDummy({
             control={form.control}
             name="fields.dieren"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Animals</FormLabel>
+              <FormItem className="space-y-1.5">
+                <FormLabel className="text-sm font-medium text-foreground">
+                  Animal
+                </FormLabel>
                 <FormControl>
                   <Input
                     {...field}
+                    onChange={(e) => field.onChange(e.target.value.toLowerCase())}
                     placeholder="Enter an animal"
                     autoComplete="off"
+                    className="h-12 rounded-xl text-base lowercase bg-background/60 transition-all focus-visible:ring-primary/30"
                   />
                 </FormControl>
                 <FormMessage />
@@ -297,13 +312,17 @@ export default function AnswersFormForDummy({
             control={form.control}
             name="fields.vruchten"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Fruits</FormLabel>
+              <FormItem className="space-y-1.5">
+                <FormLabel className="text-sm font-medium text-foreground">
+                  Fruit
+                </FormLabel>
                 <FormControl>
                   <Input
                     {...field}
+                    onChange={(e) => field.onChange(e.target.value.toLowerCase())}
                     placeholder="Enter a fruit"
                     autoComplete="off"
+                    className="h-12 rounded-xl text-base lowercase bg-background/60 transition-all focus-visible:ring-primary/30"
                   />
                 </FormControl>
                 <FormMessage />
@@ -314,8 +333,10 @@ export default function AnswersFormForDummy({
             control={form.control}
             name="fields.landen"
             render={({ field }) => (
-              <FormItem className="col-span-2">
-                <FormLabel>Countries</FormLabel>
+              <FormItem className="space-y-1.5 sm:col-span-2">
+                <FormLabel className="text-sm font-medium text-foreground">
+                  Country
+                </FormLabel>
                 <FormControl>
                   <SelectWithSearch
                     value={field.value}
@@ -325,6 +346,7 @@ export default function AnswersFormForDummy({
                     emptyMessage="No countries found."
                     options={countries}
                     disabled={field.disabled}
+                    className="[&_button]:h-12 [&_button]:rounded-xl [&_button]:text-base [&_button]:bg-background/60"
                   />
                 </FormControl>
                 <FormMessage />
@@ -335,10 +357,10 @@ export default function AnswersFormForDummy({
 
         <Button
           type="submit"
-          className="w-full cursor-pointer"
+          className="h-13 w-full rounded-xl bg-primary text-primary-foreground text-base font-semibold transition-all hover:opacity-95 active:scale-[0.99] cursor-pointer"
           disabled={form.formState.isSubmitting}
         >
-          {form.formState.isSubmitting ? "Submitting..." : "Submit Answers"}
+          {form.formState.isSubmitting ? "Submitting Answers..." : "Submit Answers"}
         </Button>
       </form>
     </Form>
